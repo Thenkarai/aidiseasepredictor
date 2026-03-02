@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, send_from_directory, url_for, jsonify
-import numpy as np
 import json
 import uuid
 import os
 import base64
-import cv2
+import io
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -23,82 +22,6 @@ SUPPORTED_PLANTS = []
 CONFIDENCE_THRESHOLD = 40  # Below this = not recognized
 
 
-def analyze_disease_severity(image_path):
-    """
-    Analyze the actual disease-affected area of the leaf using image processing.
-    Uses HSV color segmentation to detect healthy green tissue vs.
-    diseased tissue (brown, yellow, black spots, lesions).
-    Returns the percentage of leaf area that is affected.
-    """
-    img = cv2.imread(image_path)
-    if img is None:
-        return 0.0
-
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    # Step 1: Isolate the leaf from background
-    # Detect leaf pixels (non-white, non-very-dark background)
-    lower_leaf = np.array([0, 20, 30])
-    upper_leaf = np.array([180, 255, 245])
-    leaf_mask = cv2.inRange(hsv, lower_leaf, upper_leaf)
-
-    # Remove very bright white/grey background
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    not_bg = cv2.inRange(gray, 15, 240)
-    leaf_mask = cv2.bitwise_and(leaf_mask, not_bg)
-
-    # Morphological cleanup
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    leaf_mask = cv2.morphologyEx(leaf_mask, cv2.MORPH_CLOSE, kernel)
-    leaf_mask = cv2.morphologyEx(leaf_mask, cv2.MORPH_OPEN, kernel)
-
-    total_leaf_pixels = cv2.countNonZero(leaf_mask)
-    if total_leaf_pixels < 100:
-        return 0.0
-
-    # Step 2: Detect healthy green areas
-    lower_green = np.array([25, 30, 30])
-    upper_green = np.array([90, 255, 255])
-    green_mask = cv2.inRange(hsv, lower_green, upper_green)
-    green_on_leaf = cv2.bitwise_and(green_mask, leaf_mask)
-    healthy_pixels = cv2.countNonZero(green_on_leaf)
-
-    # Step 3: Detect diseased areas (brown, yellow, black spots, lesions)
-    # Brown/tan regions
-    lower_brown = np.array([8, 30, 30])
-    upper_brown = np.array([25, 255, 200])
-    brown_mask = cv2.inRange(hsv, lower_brown, upper_brown)
-
-    # Dark spots/lesions (very dark on leaf)
-    lower_dark = np.array([0, 0, 15])
-    upper_dark = np.array([180, 255, 60])
-    dark_mask = cv2.inRange(hsv, lower_dark, upper_dark)
-
-    # Yellow/chlorosis
-    lower_yellow = np.array([18, 40, 100])
-    upper_yellow = np.array([35, 255, 255])
-    yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-
-    # White/powdery mildew areas
-    lower_white = np.array([0, 0, 200])
-    upper_white = np.array([180, 40, 255])
-    white_mask = cv2.inRange(hsv, lower_white, upper_white)
-
-    # Combine all diseased masks
-    diseased_mask = cv2.bitwise_or(brown_mask, dark_mask)
-    diseased_mask = cv2.bitwise_or(diseased_mask, yellow_mask)
-    diseased_mask = cv2.bitwise_or(diseased_mask, white_mask)
-
-    # Only count diseased pixels that are on the leaf
-    diseased_on_leaf = cv2.bitwise_and(diseased_mask, leaf_mask)
-    diseased_pixels = cv2.countNonZero(diseased_on_leaf)
-
-    # Calculate percentage
-    affected_pct = (diseased_pixels / total_leaf_pixels) * 100
-    affected_pct = min(affected_pct, 100.0)
-
-    return round(affected_pct, 1)
-
 
 @app.route('/uploadimages/<path:filename>')
 def uploaded_images(filename):
@@ -109,10 +32,10 @@ def uploaded_images(filename):
 def home():
     return render_template('home.html')
 
-def model_predict(image_path):
+def model_predict(image_bytes):
     """Run prediction and return disease info + confidence data using Gemini API."""
     try:
-        img = Image.open(image_path)
+        img = Image.open(io.BytesIO(image_bytes))
     except Exception as e:
         return {
             'prediction': None,
@@ -226,34 +149,33 @@ Respond strictly in the following JSON template:
     }
 
 
-@app.route('/upload/', methods=['POST', 'GET'])
+@app.route('/upload/', methods=['POST'])
 def uploadimage():
-    if request.method == "POST":
-        image = request.files['img']
-        temp_name = f"uploadimages/temp_{uuid.uuid4().hex}"
-        filepath = f'{temp_name}_{image.filename}'
-        image.save(filepath)
-
-        result = model_predict(f'./{filepath}')
-
-        return render_template(
-            'home.html',
-            result=True,
-            imagepath=f'/{filepath}',
-            prediction=result['prediction'],
-            confidence=result['confidence'],
-            plant_name=result['plant_name'],
-            disease_name=result['disease_name'],
-            is_healthy=result['is_healthy'],
-            severity=result['severity'],
-            tamil=result['tamil'],
-            is_valid=result['is_valid'],
-            error_message=result['error_message'],
-            error_tamil=result['error_tamil'],
-            supported_plants=SUPPORTED_PLANTS,
-        )
-    else:
+    image_file = request.files.get('img')
+    if not image_file:
         return redirect('/')
+        
+    image_bytes = image_file.read()
+    b64_image = "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode('utf-8')
+    
+    result = model_predict(image_bytes)
+
+    return render_template(
+        'home.html',
+        result=True,
+        imagepath=b64_image,
+        prediction=result['prediction'],
+        confidence=result['confidence'],
+        plant_name=result['plant_name'],
+        disease_name=result['disease_name'],
+        is_healthy=result['is_healthy'],
+        severity=result['severity'],
+        tamil=result['tamil'],
+        is_valid=result['is_valid'],
+        error_message=result['error_message'],
+        error_tamil=result['error_tamil'],
+        supported_plants=SUPPORTED_PLANTS,
+    )
 
 
 @app.route('/upload-camera/', methods=['POST'])
@@ -264,20 +186,17 @@ def upload_camera():
         return jsonify({'error': 'No image data received'}), 400
 
     image_data = data['image']
+    b64_string = image_data
     if ',' in image_data:
-        image_data = image_data.split(',')[1]
+        b64_string = image_data.split(',')[1]
 
-    img_bytes = base64.b64decode(image_data)
-    filepath = f"uploadimages/camera_{uuid.uuid4().hex}.jpg"
+    img_bytes = base64.b64decode(b64_string)
 
-    with open(filepath, 'wb') as f:
-        f.write(img_bytes)
-
-    result = model_predict(f'./{filepath}')
+    result = model_predict(img_bytes)
 
     return jsonify({
         'success': True,
-        'imagepath': f'/{filepath}',
+        'imagepath': image_data,
         'prediction': result['prediction'],
         'confidence': result['confidence'],
         'plant_name': result['plant_name'],
