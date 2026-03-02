@@ -77,8 +77,10 @@ Respond strictly in the following JSON template:
 }
 """
     try:
-        api_key = "AIzaSyAi8rFVHxehwgYvCW6tIJFrurQshwgfXyY"
-        
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY environment variable is not set.")
+            
         global client
         if client is None:
             client = genai.Client(api_key=api_key)
