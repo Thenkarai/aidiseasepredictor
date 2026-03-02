@@ -104,8 +104,8 @@ Respond strictly in the following JSON template:
             'severity': 0.0,
             'tamil': {'plant': '', 'disease': '', 'cause': '', 'cure': ''},
             'is_valid': False,
-            'error_message': 'Failed to process image with AI model. Please ensure GEMINI_API_KEY is correctly set.',
-            'error_tamil': 'AI மாடல் மூலம் படத்தை சரிபார்க்க முடியவில்லை. GEMINI_API_KEY உள்ளதா என சோதிக்கவும்.',
+            'error_message': f'API Error: {str(e)}',
+            'error_tamil': 'AI மாடல் மூலம் படத்தை சரிபார்க்க முடியவில்லை.',
         }
 
     if not data.get("is_plant", False):
