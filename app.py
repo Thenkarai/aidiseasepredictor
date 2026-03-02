@@ -130,18 +130,13 @@ Respond strictly in the following JSON template:
     prediction_label = {"cause": data.get("cause", ""), "cure": data.get("cure", "")}
     tamil_data = data.get("tamil", {"plant": plant_name, "disease": disease_name, "cause": "", "cure": ""})
     
-    # Real disease severity from image analysis using OpenCV
-    severity = 0.0
-    if not is_healthy:
-        severity = analyze_disease_severity(image_path)
-        
     return {
         'prediction': prediction_label,
         'confidence': round(confidence, 2),
         'plant_name': plant_name,
         'disease_name': disease_name,
         'is_healthy': is_healthy,
-        'severity': severity,
+        'severity': 0.0,
         'tamil': tamil_data,
         'is_valid': True,
         'error_message': '',
