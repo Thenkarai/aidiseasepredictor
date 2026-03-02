@@ -1,0 +1,378 @@
+{
+    "plants": [
+        {
+            "english_name": "Tomato",
+            "tamil_name": "தக்காளி",
+            "scientific_name": "Solanum lycopersicum",
+            "common_diseases": [
+                "Late blight",
+                "Early blight",
+                "Leaf spot"
+            ]
+        },
+        {
+            "english_name": "Rice",
+            "tamil_name": "அரிசி",
+            "scientific_name": "Oryza sativa",
+            "common_diseases": [
+                "Blast",
+                "Sheath blight",
+                "Brown spot"
+            ]
+        },
+        {
+            "english_name": "Sorghum",
+            "tamil_name": "சோளம்",
+            "scientific_name": "Sorghum bicolor",
+            "common_diseases": [
+                "Grain mold",
+                "Downy mildew"
+            ]
+        },
+        {
+            "english_name": "Millet",
+            "tamil_name": "சோளம் (மில்லெட்)",
+            "scientific_name": "Panicum miliaceum",
+            "common_diseases": [
+                "Leaf spot",
+                "Stem rot"
+            ]
+        },
+        {
+            "english_name": "Banana",
+            "tamil_name": "வாழை",
+            "scientific_name": "Musa acuminata",
+            "common_diseases": [
+                "Panama disease",
+                "Banana bunchy top virus"
+            ]
+        },
+        {
+            "english_name": "Mango",
+            "tamil_name": "மாம்பழம்",
+            "scientific_name": "Mangifera indica",
+            "common_diseases": [
+                "Powdery mildew",
+                "Anthracnose",
+                "Mango wilt"
+            ]
+        },
+        {
+            "english_name": "Groundnut",
+            "tamil_name": "கடலை",
+            "scientific_name": "Arachis hypogaea",
+            "common_diseases": [
+                "Late leaf spot",
+                "Aflatoxin contamination"
+            ]
+        },
+        {
+            "english_name": "Cotton",
+            "tamil_name": "பட்டு",
+            "scientific_name": "Gossypium hirsutum",
+            "common_diseases": [
+                "Cotton boll rot",
+                "Verticillium wilt"
+            ]
+        },
+        {
+            "english_name": "Wheat",
+            "tamil_name": "கோதுமை",
+            "scientific_name": "Triticum aestivum",
+            "common_diseases": [
+                "Rust",
+                "Powdery mildew",
+                "Septoria leaf blotch"
+            ]
+        },
+        {
+            "english_name": "Sugarcane",
+            "tamil_name": "கரும்பு",
+            "scientific_name": "Saccharum officinarum",
+            "common_diseases": [
+                "Red rot",
+                "Ratoon stunting disease"
+            ]
+        },
+        {
+            "english_name": "Pomegranate",
+            "tamil_name": "மாதுளை",
+            "scientific_name": "Punica granatum",
+            "common_diseases": [
+                "Fruit fly",
+                "Anthracnose"
+            ]
+        },
+        {
+            "english_name": "Papaya",
+            "tamil_name": "பப்பாளி",
+            "scientific_name": "Carica papaya",
+            "common_diseases": [
+                "Papaya ringspot virus",
+                "Powdery mildew"
+            ]
+        },
+        {
+            "english_name": "Guava",
+            "tamil_name": "வரல",
+            "scientific_name": "Psidium guajava",
+            "common_diseases": [
+                "Anthracnose",
+                "Fruit rot"
+            ]
+        },
+        {
+            "english_name": "Jackfruit",
+            "tamil_name": "பலாப்பழம்",
+            "scientific_name": "Artocarpus heterophyllus",
+            "common_diseases": [
+                "Root rot",
+                "Fruit fly"
+            ]
+        },
+        {
+            "english_name": "Chickpea",
+            "tamil_name": "கடலை (சுண்டல்)",
+            "scientific_name": "Cicer arietinum",
+            "common_diseases": [
+                "Ascochyta blight",
+                "Botrytis gray mold"
+            ]
+        },
+        {
+            "english_name": "Lentil",
+            "tamil_name": "பரங்கிக்காய்",
+            "scientific_name": "Lens culinaris",
+            "common_diseases": [
+                "Ascochyta blight",
+                "Fusarium wilt"
+            ]
+        },
+        {
+            "english_name": "Soybean",
+            "tamil_name": "சோயா",
+            "scientific_name": "Glycine max",
+            "common_diseases": [
+                "Soybean rust",
+                "Phytophthora root rot"
+            ]
+        },
+        {
+            "english_name": "Peanut",
+            "tamil_name": "முந்திரி",
+            "scientific_name": "Arachis hypogaea",
+            "common_diseases": [
+                "Leaf spot",
+                "Aflatoxin"
+            ]
+        },
+        {
+            "english_name": "Coconut",
+            "tamil_name": "தேங்காய்",
+            "scientific_name": "Cocos nucifera",
+            "common_diseases": [
+                "Coconut wilt disease",
+                "Root rot"
+            ]
+        },
+        {
+            "english_name": "Cashew",
+            "tamil_name": "காஸ்யூ",
+            "scientific_name": "Anacardium occidentale",
+            "common_diseases": [
+                "Anthracnose",
+                "Powdery mildew"
+            ]
+        },
+        {
+            "english_name": "Turmeric",
+            "tamil_name": "மஞ்சள்",
+            "scientific_name": "Curcuma longa",
+            "common_diseases": [
+                "Leaf spot",
+                "Rhizome rot"
+            ]
+        },
+        {
+            "english_name": "Ginger",
+            "tamil_name": "இஞ்சி",
+            "scientific_name": "Zingiber officinale",
+            "common_diseases": [
+                "Rhizome rot",
+                "Soft rot"
+            ]
+        },
+        {
+            "english_name": "Amaranth",
+            "tamil_name": "சரண",
+            "scientific_name": "Amaranthus spp.",
+            "common_diseases": [
+                "Downy mildew",
+                "Leaf spot"
+            ]
+        },
+        {
+            "english_name": "Spinach",
+            "tamil_name": "முளைக்கீரை",
+            "scientific_name": "Spinacia oleracea",
+            "common_diseases": [
+                "Downy mildew",
+                "Fusarium wilt"
+            ]
+        },
+        {
+            "english_name": "Cabbage",
+            "tamil_name": "முட்டைக்கோசு",
+            "scientific_name": "Brassica oleracea var. capitata",
+            "common_diseases": [
+                "Black rot",
+                "Downy mildew"
+            ]
+        },
+        {
+            "english_name": "Carrot",
+            "tamil_name": "காரட்",
+            "scientific_name": "Daucus carota",
+            "common_diseases": [
+                "Root knot nematode",
+                "Alternaria leaf blight"
+            ]
+        },
+        {
+            "english_name": "Potato",
+            "tamil_name": "உருளைக்கிழங்கு",
+            "scientific_name": "Solanum tuberosum",
+            "common_diseases": [
+                "Late blight",
+                "Early blight",
+                "Potato virus Y"
+            ]
+        },
+        {
+            "english_name": "Onion",
+            "tamil_name": "வெங்காயம்",
+            "scientific_name": "Allium cepa",
+            "common_diseases": [
+                "Downy mildew",
+                "Purple blotch"
+            ]
+        },
+        {
+            "english_name": "Garlic",
+            "tamil_name": "பூண்டு",
+            "scientific_name": "Allium sativum",
+            "common_diseases": [
+                "White rot",
+                "Fusarium basal rot"
+            ]
+        },
+        {
+            "english_name": "Brinjal",
+            "tamil_name": "கத்திரிக்காய்",
+            "scientific_name": "Solanum melongena",
+            "common_diseases": [
+                "Phytophthora blight",
+                "Bacterial wilt"
+            ]
+        },
+        {
+            "english_name": "Cucumber",
+            "tamil_name": "வெள்ளரிக்காய்",
+            "scientific_name": "Cucumis sativus",
+            "common_diseases": [
+                "Powdery mildew",
+                "Downy mildew"
+            ]
+        },
+        {
+            "english_name": "Okra",
+            "tamil_name": "சுண்டைக்காய்",
+            "scientific_name": "Abelmoschus esculentus",
+            "common_diseases": [
+                "Yellow vein mosaic virus",
+                "Root knot nematode"
+            ]
+        },
+        {
+            "english_name": "Bottle Gourd",
+            "tamil_name": "சூப்பர்கோசு",
+            "scientific_name": "Lagenaria siceraria",
+            "common_diseases": [
+                "Powdery mildew",
+                "Cucumber mosaic virus"
+            ]
+        },
+        {
+            "english_name": "Pumpkin",
+            "tamil_name": "பூசணி",
+            "scientific_name": "Cucurbita maxima",
+            "common_diseases": [
+                "Powdery mildew",
+                "Downy mildew"
+            ]
+        },
+        {
+            "english_name": "Fenugreek",
+            "tamil_name": "வெந்தயம்",
+            "scientific_name": "Trigonella foenum-graecum",
+            "common_diseases": [
+                "Root rot",
+                "Powdery mildew"
+            ]
+        },
+        {
+            "english_name": "Chili",
+            "tamil_name": "மிளகாய்",
+            "scientific_name": "Capsicum annuum",
+            "common_diseases": [
+                "Anthracnose",
+                "Bacterial spot"
+            ]
+        },
+        {
+            "english_name": "Coriander",
+            "tamil_name": "மல்லி",
+            "scientific_name": "Coriandrum sativum",
+            "common_diseases": [
+                "Downy mildew",
+                "Powdery mildew"
+            ]
+        },
+        {
+            "english_name": "Lemon",
+            "tamil_name": "எலுமிச்சை",
+            "scientific_name": "Citrus limon",
+            "common_diseases": [
+                "Citrus greening",
+                "Mosaic virus"
+            ]
+        },
+        {
+            "english_name": "Sapodilla",
+            "tamil_name": "சப்போடி",
+            "scientific_name": "Manilkara zapota",
+            "common_diseases": [
+                "Anthracnose",
+                "Leaf spot"
+            ]
+        },
+        {
+            "english_name": "Lychee",
+            "tamil_name": "லிச்சி",
+            "scientific_name": "Litchi chinensis",
+            "common_diseases": [
+                "Fruit rot",
+                "Leaf spot"
+            ]
+        },
+        {
+            "english_name": "Custard Apple",
+            "tamil_name": "சீத்தா",
+            "scientific_name": "Annona squamosa",
+            "common_diseases": [
+                "Anthracnose",
+                "Root rot"
+            ]
+        }
+    ]
+}

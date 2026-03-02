@@ -3,7 +3,7 @@ import uuid
 import os
 import base64
 import io
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -23,9 +23,9 @@ CONFIDENCE_THRESHOLD = 40  # Below this = not recognized
 
 
 
-@app.route('/uploadimages/<path:filename>')
-def uploaded_images(filename):
-    return send_from_directory('./uploadimages', filename)
+# The uploadimages route is no longer needed because images are handled in-memory.
+# If needed, you can serve static files via Flask's static folder.
+
 
 
 @app.route('/', methods=['GET'])
@@ -205,6 +205,13 @@ def upload_camera():
         'supported_plants': SUPPORTED_PLANTS,
     })
 
+@app.route('/plants', methods=['GET'])
+def get_plants():
+    """Return the full plant catalog as JSON."""
+    catalog_path = os.path.join(os.path.dirname(__file__), 'plants_catalog.json')
+    with open(catalog_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=True)
