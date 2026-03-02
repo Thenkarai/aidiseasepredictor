@@ -1,0 +1,4 @@
+Flask==3.0.3
+google-genai==0.3.0
+Pillow==10.4.0
+opencv-python-headless==4.10.0.84
