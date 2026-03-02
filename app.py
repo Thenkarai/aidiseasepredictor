@@ -57,8 +57,9 @@ You are an expert botanist and plant pathologist. Examine the provided image.
 3. Identify the disease name if any, or "Healthy" if the plant appears healthy.
 4. Provide a brief 1-sentence cause of the disease (if healthy, leave empty).
 5. Provide a brief 1-sentence treatment or cure for the disease (if healthy, leave empty).
-6. State your confidence level as an integer out of 100.
-7. Provide Tamil translations for the plant name, disease name ("ஆரோக்கியமான" if healthy), cause, and cure (leave cause/cure empty if healthy).
+6. Estimate the severity of the disease as a percentage from 0.0 to 100.0 (if healthy, return 0.0).
+7. State your confidence level as an integer out of 100.
+8. Provide Tamil translations for the plant name, disease name ("ஆரோக்கியமான" if healthy), cause, and cure (leave cause/cure empty if healthy).
 
 Respond strictly in the following JSON template:
 {
@@ -67,6 +68,7 @@ Respond strictly in the following JSON template:
   "disease_name": "...",
   "cause": "...",
   "cure": "...",
+  "severity": 45.5,
   "confidence": 95,
   "tamil": {
     "plant": "...",
@@ -128,18 +130,29 @@ Respond strictly in the following JSON template:
     disease_name = data.get("disease_name", "Unknown Disease")
     is_healthy = disease_name.lower() == "healthy"
     confidence = float(data.get("confidence", 95))
-    
-    prediction_label = {"cause": data.get("cause", ""), "cure": data.get("cure", "")}
-    tamil_data = data.get("tamil", {"plant": plant_name, "disease": disease_name, "cause": "", "cure": ""})
-    
+    severity = float(data.get("severity", 0.0))
+
+    # Compile the result structure expected by the frontend
+    prediction_label = {
+        "cause": data.get("cause", ""),
+        "cure": data.get("cure", "")
+    }
+    tamil_data = data.get("tamil", {
+        "plant": plant_name,
+        "disease": disease_name,
+        "cause": "",
+        "cure": ""
+    })
+
     return {
         'prediction': prediction_label,
         'confidence': round(confidence, 2),
         'plant_name': plant_name,
         'disease_name': disease_name,
         'is_healthy': is_healthy,
-        'severity': 0.0,
+        'severity': round(severity, 2),
         'tamil': tamil_data,
+
         'is_valid': True,
         'error_message': '',
         'error_tamil': '',
