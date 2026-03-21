@@ -91,6 +91,12 @@
                     </div>
                 </div>
 
+                <!-- NEW TOP SCANNER HUB -->
+                <div style="margin-top:40px; display:flex; gap:20px; z-index:100; position:relative;">
+                    <button class="scanner-btn" onclick="openCamera()"><i class="fas fa-camera"></i> CAMERA SCAN</button>
+                    <button class="scanner-btn-alt" onclick="document.getElementById('file-input').click()"><i class="fas fa-upload"></i> FILE SCAN</button>
+                </div>
+
                 <div class="plant-visual-hub">
                     <img src="https://github.com/Thenkarai/aidiseasepredictor/raw/main/static/images/botanical_anatomy.png" class="plant-anatomy-img" alt="Plant Twin">
                     <div class="anatomy-label" style="top:25%; left:-120px;"><i class="fas fa-check-circle" style="color:var(--accent)"></i> BIOMETRIC STABLE</div>
@@ -100,15 +106,14 @@
             </div>
 
             <div class="dashboard-grid">
-                <!-- Dual Scanner Action Hub -->
-                <div class="card-v3" style="grid-column: span 2; display:flex; align-items:center; justify-content:space-between; padding:50px;">
-                    <div>
-                        <h2 style="font-size:2.5rem; font-weight:800; color:var(--text-primary); margin-bottom:12px;">Initialize Diagnostic</h2>
-                        <p style="color:var(--text-secondary); max-width:450px; font-size:1.1rem; line-height:1.6;">Align your plant specimen within the frame for real-time AI identification and remediation protocols.</p>
-                    </div>
-                    <div style="display:flex; gap:25px;">
-                        <button class="scanner-btn" onclick="openCamera()"><i class="fas fa-video"></i> CAMERA SCAN</button>
-                        <button class="scanner-btn-alt" onclick="document.getElementById('file-input').click()"><i class="fas fa-file-arrow-up"></i> FILE SCAN</button>
+                <!-- Status & Insights Grid -->
+                <div class="card-v3" style="grid-column: span 2;">
+                    <div class="card-title">Neural Engine Status</div>
+                    <div style="display:flex; align-items:center; gap:30px; margin-top:10px;">
+                        <div style="flex:1; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden;">
+                            <div style="width:85%; height:100%; background:var(--accent); box-shadow:0 0 10px var(--accent);"></div>
+                        </div>
+                        <span style="font-weight:800; color:var(--accent); font-size:0.85rem;">85% OPTIMIZED</span>
                     </div>
                 </div>
 
