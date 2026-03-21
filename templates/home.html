@@ -459,23 +459,57 @@
             const isHealthy = diseaseEn === 'Healthy';
             const severity = isHealthy ? 0 : Math.floor(Math.random() * (85 - 40) + 40);
             
-            // 2. Map disease names dynamically
-            document.getElementById('analysis-loader').style.display = 'flex';
-            const plantTa = await translateText(plantEn, 'ta');
-            const diseaseTa = isHealthy ? 'ஆரோக்கியமானது' : await translateText(diseaseEn, 'ta');
-            const causeTa = await translateText(causeEn, 'ta');
-            const cureTa = await translateText(cureEn, 'ta');
-            document.getElementById('analysis-loader').style.display = 'none';
+            // 2. Map disease names dynamically utilizing STRICT STATIC MAPPING to prevent API failures
+            const tamilDictionary = {
+                "Healthy": { name: "ஆரோக்கியமானது", cure: "" },
+                "Leaf Blight": { name: "இலை கறை நோய்", cure: "நீம் எண்ணெய் பயன்படுத்தவும்." },
+                "Powdery Mildew": { name: "பூஞ்சை நோய்", cure: "கந்தகம் கலந்த மருந்துகளை தெளிக்கவும்." },
+                "Apple Scab": { name: "ஆப்பிள் கரும்படை நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
+                "Apple Black Rot": { name: "ஆப்பிள் அழுகல் நோய்", cure: "பாதிக்கப்பட்ட பகுதிகளை அகற்றுங்கள்." },
+                "Cedar Rust": { name: "துரு நோய்", cure: "தகுந்த ரசாயனங்களை தெளிக்கவும்." },
+                "Cercospora Leaf Spot": { name: "இலைப்புள்ளி நோய்", cure: "பயிர்களை சுழற்சி முறையில் பயிரிடவும்." },
+                "Common Rust": { name: "பொதுவான துரு நோய்", cure: "எதிர்ப்பு திறன் கொண்ட விதைகளை பயன்படுத்தவும்." },
+                "Black Rot": { name: "கருப்பு அழுகல்", cure: "பாதிக்கப்பட்ட பழங்களை அகற்றவும்." },
+                "Esca": { name: "எஸ்கா நோய்", cure: "பாதிக்கப்பட்ட கிளைகளை வெட்டவும்." },
+                "Huanglongbing": { name: "எலுமிச்சை வாடல் நோய்", cure: "பாதிக்கப்பட்ட மரங்களை அகற்றவும்." },
+                "Bacterial spot": { name: "பாக்டீரியா இலைப்புள்ளி", cure: "பாக்டீரியா கொல்லியை தெளிக்கவும்." },
+                "Early blight": { name: "ஆரம்ப கருகல் நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
+                "Late blight": { name: "தாமத கருகல் நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
+                "Leaf scorch": { name: "இலை கருகல்", cure: "பாதிக்கப்பட்ட இலைகளை அகற்றவும்." },
+                "Leaf Mold": { name: "இலை பூஞ்சை", cure: "காற்றோட்டத்தை அதிகரிக்கவும்." },
+                "Septoria leaf spot": { name: "செப்டோரியா இலைப்புள்ளி", cure: "பூஞ்சை கொல்லியை தெளிக்கவும்." },
+                "Spider mites": { name: "சிலந்தி பூச்சி", cure: "நீம் எண்ணெய் பயன்படுத்தவும்." },
+                "Target Spot": { name: "இலக்கு புள்ளி", cure: "தகுந்த ரசாயனங்களை பயன்படுத்தவும்." },
+                "Yellow Leaf Curl Virus": { name: "மஞ்சள் இலை சுருள் வைரஸ்", cure: "வைரஸ் பரப்பும் பூச்சிகளை கட்டுப்படுத்தவும்." },
+                "mosaic virus": { name: "மொசைக் வைரஸ்", cure: "பாதிக்கப்பட்ட செடிகளை அழிக்கவும்." }
+            };
 
+            let diseaseTa = "கண்டறியப்படாத நோய்";
+            let cureTa = "தகுந்த விவசாய நிபுணரை அணுகவும்.";
+            
+            // Fuzzy search the dictionary for a perfect translation match
+            if (isHealthy) {
+                diseaseTa = "ஆரோக்கியமானது";
+                cureTa = "";
+            } else {
+                for (let eng in tamilDictionary) {
+                    if (diseaseEn.toLowerCase().includes(eng.toLowerCase())) {
+                        diseaseTa = tamilDictionary[eng].name;
+                        cureTa = tamilDictionary[eng].cure;
+                        break;
+                    }
+                }
+            }
+
+            // Optional static UI text output (Visual Only)
+            const plantTa = plantEn; // We bypass strict plant translation if dict handles it or keep original
+            const causeTa = "தெரியவில்லை"; // Fallback visual
+            
             // 3. Prevent raw arrays or numbers entering speech loop
-            // Clean up structured lists from solution (e.g., "1. Do this. 2. Do that." -> "Do this.")
+            // Since we use the mapped cureTa from the dictionary, we don't need to parse raw predictions anymore!
             let cleanCure = "";
             if (!isHealthy) {
-                cleanCure = cureTa.replace(/[0-9]+\.\s*/g, '').replace(/\n/g, ' ').trim();
-                // Extract just the primary solution action for clear speech format
-                if (cleanCure.includes('.')) {
-                    cleanCure = cleanCure.split('.')[0] + ".";
-                }
+                cleanCure = cureTa;
             }
 
             // 4. Build a FULL precise template string Tamil sentence
