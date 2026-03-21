@@ -18,24 +18,25 @@ app = Flask(__name__)
 print(f"Server starting - Python {os.sys.version}")
 print(f"Environment GEMINI_API_KEY: {'Set' if os.getenv('GEMINI_API_KEY') else 'NOT SET'}")
 
-# Advanced Model Strategy
-AVAILABLE_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-exp', 'gemini-1.5-pro']
-
-def get_available_models():
-    """Diagnostic helper to log all models accessible by the current key."""
+# Dynamic Model Strategy
+def get_best_available_model():
+    """Discover the best model supported by this API key dynamically."""
     try:
-        models = [m.name for m in genai.list_models()]
-        print(f"DIAGNOSTIC - Accessible Models: {models}")
-        return models
+        supported_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        print(f"DEBUG: Supported models found: {supported_models}")
+        
+        # Preference order for Farmers (Fast & Highly Capable)
+        for pref in ['models/gemini-1.5-flash', 'models/gemini-1.5-flash-latest', 'models/gemini-2.0-flash-exp', 'models/gemini-1.5-pro']:
+            if pref in supported_models: return pref
+        if supported_models: return supported_models[0]
     except Exception as e:
-        print(f"DIAGNOSTIC - Failed to list models: {e}")
-        return []
+        print(f"DEBUG: Model discovery failed: {e}")
+    return 'models/gemini-1.5-flash'
 
 # Configure Gemini Client
 api_key = os.getenv("GEMINI_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)
-    get_available_models()
 
 @app.route('/', methods=['GET'])
 def home():
@@ -87,39 +88,34 @@ Respond ONLY in this JSON format:
 }
 """
     
-    last_error = None
-    for model_name in AVAILABLE_MODELS:
-        try:
-            print(f"ENGINE - Attempting analysis with: {model_name}")
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content([prompt, img])
+    try:
+        model_name = get_best_available_model()
+        print(f"ENGINE: Final decision - Using {model_name}")
+        model = genai.GenerativeModel(model_name)
+        response = model.generate_content([prompt, img])
+        
+        # Extract JSON from response
+        res_text = response.text
+        if "```json" in res_text:
+            res_text = res_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in res_text:
+            res_text = res_text.split("```")[1].split("```")[0].strip()
             
-            # Extract JSON from response
-            res_text = response.text
-            if "```json" in res_text:
-                res_text = res_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in res_text:
-                res_text = res_text.split("```")[1].split("```")[0].strip()
-                
-            data = json.loads(res_text)
-            print(f"ENGINE - Success with {model_name}")
-            break # Exit loop on success
-        except Exception as e:
-            last_error = str(e)
-            print(f"ENGINE - Model {model_name} failed: {last_error}")
-            continue # Try next model
-    else:
-        # If the loop finishes without break, all models failed
+        data = json.loads(res_text)
+    except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
+        print(f"Prediction Error:\n{err_msg}")
         return {
-            'prediction': {'cause': 'All models returned errors', 'cure': 'Verify API Permissions'},
+            'prediction': {'cause': 'Engine Alignment Issue', 'cure': 'Please try again in 1 minute'},
             'confidence': 0,
-            'plant_name': 'Engine Error',
-            'disease_name': f'Connectivity Issue ({last_error})',
+            'plant_name': 'System Busy',
+            'disease_name': f'Connectivity Error ({str(e)})',
             'is_healthy': False,
             'severity': 0.0,
             'tamil': {'plant': 'பிழை', 'disease': 'பிழை', 'cause': '-', 'cure': '-'},
             'is_valid': False,
-            'error_message': f'Diagnostic Failure: {last_error}',
+            'error_message': f'API Support Error: {str(e)}',
         }
 
     # Process identification results
