@@ -127,36 +127,23 @@ Respond ONLY in this JSON format:
             'error_tamil': 'AI மாடல் மூலம் படத்தை சரிபார்க்க முடியவில்லை.',
         }
 
-    if not data.get("is_plant", False):
-        return {
-            'prediction': None,
-            'confidence': 0,
-            'plant_name': '',
-            'disease_name': '',
-            'is_healthy': False,
-            'severity': 0.0,
-            'tamil': {'plant': '', 'disease': '', 'cause': '', 'cure': ''},
-            'is_valid': False,
-            'error_message': 'This image does not appear to contain a plant. Please upload a clear photo of a plant or leaf.',
-            'error_tamil': 'இந்த படத்தில செடி இருக்க மாதிரி தெரியல. தயவுசெய்து ஒரு செடியின் படத்தை போடுங்க.',
-        }
-    
-    plant_name = data.get("plant_name", "Unknown Plant")
-    disease_name = data.get("disease_name", "Unknown Disease")
-    is_healthy = disease_name.lower() == "healthy"
-    confidence = float(data.get("confidence", 95))
+    # Process identification results
+    plant_name = data.get("plant_name", "Unknown Specimen")
+    disease_name = data.get("disease_name", "Condition Unknown")
+    is_healthy = "healthy" in disease_name.lower()
+    confidence = int(data.get("confidence", 95))
     severity = float(data.get("severity", 0.0))
 
     # Compile the result structure expected by the frontend
     prediction_label = {
-        "cause": data.get("cause", ""),
-        "cure": data.get("cure", "")
+        "cause": data.get("cause", "Etiology analysis in progress..."),
+        "cure": data.get("cure", "Clinical consultation recommended.")
     }
     tamil_data = data.get("tamil", {
         "plant": plant_name,
         "disease": disease_name,
-        "cause": "",
-        "cure": ""
+        "cause": "-",
+        "cure": "-"
     })
 
     return {
@@ -167,10 +154,8 @@ Respond ONLY in this JSON format:
         'is_healthy': is_healthy,
         'severity': round(severity, 2),
         'tamil': tamil_data,
-        'is_plant': True,
         'is_valid': True,
         'error_message': '',
-        'error_tamil': '',
     }
 
 
@@ -197,7 +182,6 @@ def uploadimage():
             'is_healthy': result['is_healthy'],
             'severity': result['severity'],
             'tamil': result['tamil'],
-            'is_plant': result.get('is_plant', False),
             'is_valid': result['is_valid'],
             'error_message': result.get('error_message', ''),
             'current_time': datetime.now().strftime("%b %d, %Y %I:%M %p")
@@ -216,8 +200,6 @@ def uploadimage():
         tamil=result['tamil'],
         is_valid=result['is_valid'],
         error_message=result['error_message'],
-        error_tamil=result['error_tamil'],
-        supported_plants=SUPPORTED_PLANTS,
         current_time=datetime.now().strftime("%b %d, %Y %I:%M %p")
     )
 
@@ -235,7 +217,6 @@ def upload_camera():
         b64_string = image_data.split(',')[1]
 
     img_bytes = base64.b64decode(b64_string)
-
     result = model_predict(img_bytes)
 
     return jsonify({
@@ -249,9 +230,7 @@ def upload_camera():
         'severity': result['severity'],
         'tamil': result['tamil'],
         'is_valid': result['is_valid'],
-        'error_message': result['error_message'],
-        'error_tamil': result['error_tamil'],
-        'supported_plants': SUPPORTED_PLANTS,
+        'error_message': result.get('error_message', '')
     })
 
 @app.route('/plants', methods=['GET'])
