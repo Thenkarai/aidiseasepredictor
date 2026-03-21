@@ -1,3 +1,11 @@
+import json
+import uuid
+import os
+import base64
+import io
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
+from google import genai
+from google.genai import types
 from PIL import Image
 from datetime import datetime
 
@@ -80,7 +88,7 @@ Respond strictly in the following JSON template:
             client = genai.Client(api_key=api_key)
             
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=[prompt, img],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
