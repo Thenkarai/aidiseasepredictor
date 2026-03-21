@@ -5,49 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Plant Doctor AI — Professional Plant Health Analysis and Disease Recognition.">
     <title>The Living Sanctuary — Plant Doctor AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
     <style>
         #analysis-loader {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 5, 8, 0.95);
-            backdrop-filter: blur(30px);
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 5, 8, 0.95); backdrop-filter: blur(30px);
+            z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
         }
         .loading-ring {
-            width: 80px; height: 80px;
-            border: 3px solid rgba(16, 185, 129, 0.1);
-            border-top: 3px solid var(--accent-primary);
-            border-radius: 50%;
+            width: 80px; height: 80px; border: 3px solid rgba(16, 185, 129, 0.1);
+            border-top: 3px solid var(--leaf-primary); border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text {
-            font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 600;
-            background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 1.25rem; font-weight: 600; color: var(--leaf-primary);
         }
+        /* History Sidebar */
+        .history-tray {
+            position: fixed; right: -350px; top: 0; width: 350px; height: 100vh;
+            background: var(--card-bg); backdrop-filter: blur(30px);
+            border-left: 1px solid var(--glass-border); z-index: 2000;
+            transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            padding: 30px; overflow-y: auto;
+        }
+        .history-tray.open { right: 0; }
+        .history-item {
+            padding: 15px; border-radius: 16px; background: var(--leaf-soft);
+            margin-bottom: 15px; cursor: pointer; border: 1px solid transparent;
+            transition: 0.3s;
+        }
+        .history-item:hover { border-color: var(--leaf-primary); transform: translateX(-5px); }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <aside class="sidebar">
+    <aside class="sidebar glass-panel">
         <div class="logo-main"><i class="fas fa-leaf"></i></div>
         <nav class="nav-links">
-            <div class="nav-item active" onclick="window.location='/'" title="Dashboard"><i class="fas fa-home"></i></div>
+            <div class="nav-item" onclick="window.location='/'" title="Dashboard"><i class="fas fa-home"></i></div>
             <div class="nav-item" onclick="document.getElementById('file-input').click()" title="Analyze Plant"><i class="fas fa-plus-circle"></i></div>
-            <div class="nav-item" title="Treatment Database"><i class="fas fa-book-medical"></i></div>
+            <div class="nav-item" onclick="toggleHistory()" title="Diagnostic History"><i class="fas fa-history"></i></div>
         </nav>
     </aside>
 
+    <div class="history-tray" id="history-tray">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h2 style="font-size:1.5rem; color:var(--leaf-primary); font-style:italic;">Diagnostic Archives</h2>
+            <i class="fas fa-times" onclick="toggleHistory()" style="cursor:pointer;"></i>
+        </div>
+        <div id="history-list">
+            <!-- Dynamic History Items -->
+        </div>
+    </div>
+
     <div class="sanctuary-bg">
-        <video autoplay muted loop playsinline class="bg-video" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:0.15; filter:grayscale(50%);">
+        <video autoplay muted loop playsinline class="bg-video" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:0.1; filter:grayscale(50%);">
             <source src="https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4" type="video/mp4">
         </video>
     </div>
@@ -55,16 +71,13 @@
     <main class="main-layout" id="main-container">
         <div id="analysis-loader">
             <div class="loading-ring"></div>
-            <p class="loading-text" style="color:var(--leaf-primary); font-family:'Outfit'; font-weight:700;">DIAGNOSING SPECIMEN...</p>
+            <p class="loading-text">DIAGNOSING SPECIMEN...</p>
         </div>
 
         <header class="top-bar">
-            <div class="brand-title">
-                Plant Doctor <span style="font-weight:300; opacity:0.6;">AI</span>
-            </div>
-            <div style="display:flex; gap:24px; color:var(--text-muted); font-size:1.2rem;">
-                 <i class="fas fa-circle-question" style="cursor:pointer;"></i>
-                 <i class="fas fa-bell" style="cursor:pointer;"></i>
+            <div class="brand-title">The Living Sanctuary</div>
+            <div style="display:flex; gap:32px; align-items:center;">
+                 <div class="theme-switch" onclick="toggleTheme()" title="Toggle Dark/Light Mode"></div>
                  <div style="width:40px; height:40px; background:var(--leaf-soft); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--leaf-primary);">
                     <i class="fas fa-user-circle"></i>
                  </div>
@@ -73,73 +86,148 @@
 
         <div id="dashboard-content" style="width:100%;">
         {% if not result %}
-        <div class="dashboard-grid">
-            <div class="upload-vignette" onclick="document.getElementById('file-input').click()">
-                <div class="vignette-icon"><i class="fas fa-shield-virus"></i></div>
-                <h2 style="font-family:'Outfit',sans-serif; font-size:3rem; font-weight:800; color:var(--text-main); margin-bottom:24px;">Transform Your Crop Health</h2>
-                <p style="color:var(--text-muted); font-size:1.2rem; margin-bottom:48px; max-width:650px; margin-inline:auto; line-height:1.6;">Upload a photo of any plant leaf for a professional AI-driven pathology report and organic treatment plan in seconds.</p>
-                <div style="display:inline-flex; align-items:center; gap:16px; padding:22px 50px; background:var(--leaf-primary); border-radius:20px; font-family:'Outfit',sans-serif; font-weight:700; color:#fff; cursor:pointer; font-size:1.1rem; box-shadow:0 15px 35px rgba(5,150,105,0.25);">
-                    <i class="fas fa-cloud-upload-alt"></i> Upload Specimen
-                </div>
-                <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
+        <div style="text-align:center; padding:100px 20px;">
+            <div style="font-size:80px; color:var(--leaf-primary); margin-bottom:40px;"><i class="fas fa-shield-virus"></i></div>
+            <h2 style="font-size:3.5rem; font-weight:700; color:var(--text-main); margin-bottom:24px; font-style:italic;">Transform Your Crop Health</h2>
+            <p style="color:var(--text-muted); font-size:1.4rem; margin-bottom:48px; max-width:700px; margin-inline:auto; line-height:1.6; font-style:italic;">Professional AI-driven pathology reports and organic treatment plans at your fingertips.</p>
+            <div class="btn-scan" onclick="document.getElementById('file-input').click()" style="display:inline-block; font-size:1.2rem;">
+                <i class="fas fa-cloud-upload-alt"></i> Begin New Scan
             </div>
+            <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
         </div>
         {% else %}
-        <div class="diagnostic-container">
-            <div class="plant-preview-vertical">
-                <img src="{{ imagepath }}" alt="Specimen">
-                <div class="preview-overlay">
-                    <span class="id-section-label" style="color:rgba(255,255,255,0.7)">BOTANICAL SPECIMEN</span>
-                    <h2 style="font-family:'Outfit',sans-serif; font-size:2rem; font-weight:800;">{{ plant_name }}</h2>
+        <div id="report-view">
+            <div class="diagnostic-container">
+                <div class="preview-sidebar">
+                    <div class="plant-preview-vertical">
+                        <img src="{{ imagepath }}" alt="Specimen">
+                    </div>
+                    
+                    <div class="meter-card glass-panel">
+                        <span class="meter-label">AI Confidence</span>
+                        <div class="meter-circle">
+                            <svg class="svg-meter" width="120" height="120">
+                                <circle class="meter-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="meter-fill" cx="60" cy="60" r="50" style="stroke-dasharray: 314; stroke-dashoffset: {{ 314 - (314 * (confidence|int if confidence else 95) / 100) }}"></circle>
+                            </svg>
+                            <div class="meter-value" style="position:absolute;">{{ confidence or 95 }}%</div>
+                        </div>
+                    </div>
+
+                    <div class="meter-card glass-panel">
+                        <span class="meter-label">Plant Health Index</span>
+                        <div class="meter-circle">
+                            <svg class="svg-meter" width="120" height="120">
+                                <circle class="meter-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="meter-fill" cx="60" cy="60" r="50" style="stroke-dasharray: 314; stroke-dashoffset: {{ 314 - (314 * (100 - (severity|int if severity else 15)) / 100) }}; stroke:#10b981;"></circle>
+                            </svg>
+                            <div class="meter-value" style="position:absolute; color:#10b981;">{{ 100 - (severity|int if severity else 15) }}%</div>
+                        </div>
+                    </div>
                 </div>
+
+                <article class="analysis-panel glass-panel">
+                    <div style="margin-bottom:40px;">
+                        <h2 class="id-name" style="margin-bottom:8px;">{{ plant_name }}</h2>
+                        <h3 style="font-size:1.8rem; color:var(--text-muted); font-weight:400; font-style:italic; margin-bottom:20px;">Diagnosis: {{ disease_name }}</h3>
+                        <p style="color:var(--text-muted); font-weight:500;">Archive Ref: #SAN-{{ current_time or '2026' }} • Expert AI v6.0</p>
+                    </div>
+
+                    <div class="id-section">
+                        <span class="id-section-label">Pathology Report</span>
+                        <p class="id-desc">{{ prediction['cause'] }}</p>
+                    </div>
+
+                    <div class="id-section">
+                        <span class="id-section-label">Prescribed Treatment</span>
+                        <p class="id-desc">{{ prediction['cure'] }}</p>
+                    </div>
+
+                    <div class="text-tamil">
+                        <p style="font-weight:700; font-size:1.4rem; color:var(--leaf-primary); margin-bottom:12px;">{{ tamil['plant'] }} - {{ tamil['disease'] }}</p>
+                        <p style="line-height:1.8; opacity:0.9;">
+                            <strong>காரணம்:</strong> {{ tamil['cause'] }} <br>
+                            <strong>தீர்வு:</strong> {{ tamil['cure'] }}
+                        </p>
+                    </div>
+
+                    <div style="margin-top:50px; display:flex; gap:20px;">
+                        <button class="btn-scan" style="flex:1;" onclick="window.location='/'">
+                            <i class="fas fa-redo-alt"></i> New Analysis
+                        </button>
+                        <button class="btn-scan" onclick="downloadPDF()" style="background:var(--leaf-soft); color:var(--leaf-primary); box-shadow:none;">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                </article>
             </div>
-
-            <article class="analysis-panel">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:50px;">
-                    <div>
-                        <h2 class="id-name" style="margin-bottom:8px;">{{ disease_name }}</h2>
-                        <p style="color:var(--text-muted); font-weight:500;">Report ID: #BOT-{{ current_time or '2026' }} • Expert AI v5.2</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="id-section-label">AI CONFIDENCE</span>
-                        <h3 style="font-family:'Outfit'; font-size:1.5rem; color:var(--leaf-primary);">{{ confidence or 95 }}%</h3>
-                    </div>
-                </div>
-
-                <div class="id-section">
-                    <span class="id-section-label">Etiology / Root Cause</span>
-                    <p class="id-desc">{{ prediction['cause'] }}</p>
-                </div>
-
-                <div class="id-section">
-                    <span class="id-section-label">Pharmacology & Cure Plan</span>
-                    <p class="id-desc">{{ prediction['cure'] }}</p>
-                </div>
-
-                <div class="text-tamil">
-                    <span class="id-section-label" style="opacity:0.5;">விவசாயிகளுக்கான தமிழ் விளக்கம்</span>
-                    <p style="font-weight:800; font-size:1.3rem; color:var(--leaf-primary); margin-bottom:12px;">{{ tamil['plant'] }} - {{ tamil['disease'] }}</p>
-                    <p style="line-height:1.8; color:#374151;">
-                        <strong>காரணம்:</strong> {{ tamil['cause'] }} <br>
-                        <strong>தீர்வு:</strong> {{ tamil['cure'] }}
-                    </p>
-                </div>
-
-                <div style="margin-top:60px; display:flex; gap:20px;">
-                    <button class="btn-scan" style="flex:1;" onclick="window.location='/'">
-                        <i class="fas fa-redo-alt"></i> New Specimen Analysis
-                    </button>
-                    <button class="btn-scan" style="background:var(--leaf-soft); color:var(--leaf-primary); box-shadow:none;">
-                        <i class="fas fa-download"></i> Save Report
-                    </button>
-                </div>
-            </article>
         </div>
         {% endif %}
         </div>
     </main>
 
     <script>
+        const body = document.body;
+
+        // Theme Management
+        function toggleTheme() {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('sanctuary-theme', newTheme);
+        }
+
+        const storedTheme = localStorage.getItem('sanctuary-theme') || 'light';
+        body.setAttribute('data-theme', storedTheme);
+
+        // History Management
+        function toggleHistory() {
+            document.getElementById('history-tray').classList.toggle('open');
+            if(document.getElementById('history-tray').classList.contains('open')) renderHistory();
+        }
+
+        function saveToHistory(data) {
+            let history = JSON.parse(localStorage.getItem('sanctuary-history') || '[]');
+            history.unshift({ ...data, timestamp: new Date().toLocaleTimeString() });
+            if(history.length > 20) history.pop();
+            localStorage.setItem('sanctuary-history', JSON.stringify(history));
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem('sanctuary-history') || '[]');
+            if(history.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:50px;">No archives found.</p>';
+                return;
+            }
+            list.innerHTML = history.map((item, index) => `
+                <div class="history-item" onclick="loadFromHistory(${index})">
+                    <div style="font-weight:700; color:var(--leaf-primary); font-size:1.1rem; font-style:italic;">${item.plant_name}</div>
+                    <div style="font-size:0.9rem; color:var(--text-main);">${item.disease_name}</div>
+                    <div style="font-size:0.8rem; margin-top:8px; opacity:0.6;">${item.current_time || item.timestamp}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadFromHistory(index) {
+            const history = JSON.parse(localStorage.getItem('sanctuary-history') || '[]');
+            updateUI(history[index]);
+            toggleHistory();
+        }
+
+        // PDF Generation
+        function downloadPDF() {
+            const element = document.getElementById('report-view');
+            const opt = {
+                margin: 0.5,
+                filename: 'Sanctuary_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -155,11 +243,13 @@
                 });
                 if (!response.ok) throw new Error('Server returned error status');
                 const data = await response.json();
-                if (data.success) updateUI(data);
-                else throw new Error(data.error_message || 'Analysis failed');
+                if (data.success) {
+                    saveToHistory(data);
+                    updateUI(data);
+                } else throw new Error(data.error_message || 'Analysis failed');
             } catch (error) {
                 console.error(error);
-                alert('Critical Error: ' + error.message);
+                alert('Analysis Error: ' + error.message);
             } finally {
                 showLoader(false);
             }
@@ -192,71 +282,80 @@
 
         function updateUI(data) {
             const content = document.getElementById('dashboard-content');
-            if (!data || data.is_valid === false || data.is_plant === false) {
-                 const title = data.is_plant === false ? "Non-Botanical Subject Detected" : "Diagnostic Failure";
-                 const msg = (data.error_message || 'Analysis failed. Please try a clearer photo.');
+            if (!data || data.is_valid === false) {
                  content.innerHTML = `
-                    <div class="diagnostic-container">
-                        <div class="analysis-panel" style="text-align:center;">
-                            <div class="vignette-icon" style="opacity:0.2; font-size:80px; margin-bottom:40px;"><i class="fas fa-microscope-slash"></i></div>
-                            <h2 style="font-family:'Outfit'; font-size:2.22rem; margin-bottom:20px;">${title}</h2>
-                            <p style="color:var(--text-muted); max-width:500px; margin:0 auto 40px; line-height:1.6;">${msg}</p>
-                            <button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-rotate-left"></i> Re-Try New Scan</button>
-                        </div>
+                    <div style="text-align:center; padding:100px 50px;" class="glass-panel">
+                        <div style="font-size:60px; color:var(--leaf-primary); opacity:0.3;"><i class="fas fa-microscope-slash"></i></div>
+                        <h2 style="font-size:2rem; margin:30px 0;">Diagnostic Failure</h2>
+                        <p style="color:var(--text-muted); margin-bottom:40px;">The specimen could not be verified. Please try a clearer leaf photo.</p>
+                        <button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-sync"></i> Reload Dashboard</button>
                     </div>`;
                  return;
             }
 
+            const confidence = data.confidence || 95;
+            const health = 100 - (parseInt(data.severity) || 15);
+
             content.innerHTML = `
-                <div class="diagnostic-container">
-                    <div class="plant-preview-vertical">
-                        <img src="${data.imagepath}" alt="Specimen">
-                        <div class="preview-overlay">
-                            <span class="id-section-label" style="color:rgba(255,255,255,0.7)">BOTANICAL SPECIMEN</span>
-                            <h2 style="font-family:'Outfit',sans-serif; font-size:2rem; font-weight:800;">${data.plant_name}</h2>
+                <div id="report-view">
+                    <div class="diagnostic-container">
+                        <div class="preview-sidebar">
+                            <div class="plant-preview-vertical glass-panel">
+                                <img src="${data.imagepath}" alt="Specimen">
+                            </div>
+                            <div class="meter-card glass-panel">
+                                <span class="meter-label">AI Confidence</span>
+                                <div class="meter-circle">
+                                    <svg class="svg-meter" width="120" height="120">
+                                        <circle class="meter-bg" cx="60" cy="60" r="50"></circle>
+                                        <circle class="meter-fill" cx="60" cy="60" r="50" style="stroke-dasharray: 314; stroke-dashoffset: ${314 - (314 * confidence / 100)}"></circle>
+                                    </svg>
+                                    <div class="meter-value" style="position:absolute;">${confidence}%</div>
+                                </div>
+                            </div>
+                            <div class="meter-card glass-panel">
+                                <span class="meter-label">Plant Health Index</span>
+                                <div class="meter-circle">
+                                    <svg class="svg-meter" width="120" height="120">
+                                        <circle class="meter-bg" cx="60" cy="60" r="50"></circle>
+                                        <circle class="meter-fill" cx="60" cy="60" r="50" style="stroke-dasharray: 314; stroke-dashoffset: ${314 - (314 * health / 100)}; stroke:#10b981;"></circle>
+                                    </svg>
+                                    <div class="meter-value" style="position:absolute; color:#10b981;">${health}%</div>
+                                </div>
+                            </div>
                         </div>
+
+                        <article class="analysis-panel glass-panel">
+                            <div style="margin-bottom:40px;">
+                                <h2 class="id-name" style="margin-bottom:8px;">${data.plant_name}</h2>
+                                <h3 style="font-size:1.8rem; color:var(--text-muted); font-weight:400; font-style:italic; margin-bottom:20px;">Diagnosis: ${data.disease_name}</h3>
+                                <p style="color:var(--text-muted); font-weight:500;">Archive Ref: #SAN-${data.current_time || new Date().toISOString().slice(0,10)} • Expert AI v6.0</p>
+                            </div>
+                            <div class="id-section">
+                                <span class="id-section-label">Pathology Report</span>
+                                <p class="id-desc">${data.prediction.cause}</p>
+                            </div>
+                            <div class="id-section">
+                                <span class="id-section-label">Prescribed Treatment</span>
+                                <p class="id-desc">${data.prediction.cure}</p>
+                            </div>
+                            <div class="text-tamil">
+                                <p style="font-weight:700; font-size:1.4rem; color:var(--leaf-primary); margin-bottom:12px;">${data.tamil.plant} - ${data.tamil.disease}</p>
+                                <p style="line-height:1.8; opacity:0.9;">
+                                    <strong>காரணம்:</strong> ${data.tamil.cause} <br>
+                                    <strong>தீர்வு:</strong> ${data.tamil.cure}
+                                </p>
+                            </div>
+                            <div style="margin-top:50px; display:flex; gap:20px;">
+                                <button class="btn-scan" style="flex:1;" onclick="window.location.reload()">
+                                    <i class="fas fa-redo-alt"></i> New Analysis
+                                </button>
+                                <button class="btn-scan" onclick="downloadPDF()" style="background:var(--leaf-soft); color:var(--leaf-primary); box-shadow:none;">
+                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                </button>
+                            </div>
+                        </article>
                     </div>
-
-                    <article class="analysis-panel">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:50px;">
-                            <div>
-                                <h2 class="id-name" style="margin-bottom:8px;">${data.disease_name}</h2>
-                                <p style="color:var(--text-muted); font-weight:500;">Report ID: #BOT-${data.current_time} • Expert AI v5.2</p>
-                            </div>
-                            <div style="text-align:right;">
-                                <span class="id-section-label">AI CONFIDENCE</span>
-                                <h3 style="font-family:'Outfit'; font-size:1.5rem; color:var(--leaf-primary);">${data.confidence || 95}%</h3>
-                            </div>
-                        </div>
-
-                        <div class="id-section">
-                            <span class="id-section-label">Etiology / Root Cause</span>
-                            <p class="id-desc">${data.prediction.cause}</p>
-                        </div>
-
-                        <div class="id-section">
-                            <span class="id-section-label">Pharmacology & Cure Plan</span>
-                            <p class="id-desc">${data.prediction.cure}</p>
-                        </div>
-
-                        <div class="text-tamil">
-                            <span class="id-section-label" style="opacity:0.5;">விவசாயிகளுக்கான தமிழ் விளக்கம்</span>
-                            <p style="font-weight:800; font-size:1.3rem; color:var(--leaf-primary); margin-bottom:12px;">${data.tamil.plant} - ${data.tamil.disease}</p>
-                            <p style="line-height:1.8; color:#374151;">
-                                <strong>காரணம்:</strong> ${data.tamil.cause} <br>
-                                <strong>தீர்வு:</strong> ${data.tamil.cure}
-                            </p>
-                        </div>
-
-                        <div style="margin-top:60px; display:flex; gap:20px;">
-                            <button class="btn-scan" style="flex:1;" onclick="window.location.reload()">
-                                <i class="fas fa-redo-alt"></i> New Specimen Analysis
-                            </button>
-                            <button class="btn-scan" style="background:var(--leaf-soft); color:var(--leaf-primary); box-shadow:none;">
-                                <i class="fas fa-download"></i> Save Report
-                            </button>
-                        </div>
-                    </article>
                 </div>
             `;
         }
