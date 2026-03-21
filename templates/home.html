@@ -197,36 +197,40 @@
             window.speechSynthesis.getVoices();
         };
 
-        function playDiagnosisAudio(encText) {
+        window.currentAudioScript = "";
+
+        function playDiagnosisAudio() {
             if (!('speechSynthesis' in window)) {
                 alert("Sorry, your browser does not support text-to-speech.");
                 return;
             }
             
-            window.speechSynthesis.cancel(); // Stop playing anything else
+            // Security: Must be synchronous and directly tied to the button click gesture
+            window.speechSynthesis.cancel();
             
-            setTimeout(() => {
-                const text = decodeURIComponent(encText);
-                const utterance = new SpeechSynthesisUtterance(text);
-                
-                // Try to explicitly set a Tamil voice if one exists
-                const voices = window.speechSynthesis.getVoices();
-                const tamilVoice = voices.find(v => v.lang.includes('ta') || v.lang.includes('ta-IN'));
-                if (tamilVoice) {
-                    utterance.voice = tamilVoice;
-                } else {
-                    utterance.lang = 'ta-IN'; // Fallback to language code
-                }
-                
-                utterance.rate = 0.85; // Slightly slower for clarity
-                utterance.pitch = 1.0;
-                
-                utterance.onerror = function(e) {
-                    console.error("Speech error:", e);
-                };
+            if (!window.currentAudioScript) return;
 
-                window.speechSynthesis.speak(utterance);
-            }, 100);
+            const utterance = new SpeechSynthesisUtterance(window.currentAudioScript);
+            
+            // Attempt to find a Tamil or generic Indian English voice as fallback
+            const voices = window.speechSynthesis.getVoices();
+            const tamilVoice = voices.find(v => v.lang.includes('ta') || v.lang.includes('ta-IN'));
+            
+            if (tamilVoice) {
+                utterance.voice = tamilVoice;
+            } else {
+                utterance.lang = 'ta-IN'; 
+            }
+            
+            utterance.rate = 0.85; 
+            utterance.pitch = 1.0;
+            
+            utterance.onerror = function(e) {
+                console.error("Speech error framework:", e);
+                alert("Speech error: Your device may not have a Tamil voice installed. Please check OS language settings.");
+            };
+
+            window.speechSynthesis.speak(utterance);
         }
 
         function stopAudio() {
@@ -374,8 +378,8 @@
             const isHealthy = diseaseEn === 'Healthy';
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
             
-            // Construct sentence for Tamil Audio Engine
-            const audioScript = `${plantTa}. நிலை: ${diseaseTa}. காரணம்: ${causeTa}. தீர்வு: ${cureTa}.`;
+            // Construct sentence for Tamil Audio Engine securely into global scope
+            window.currentAudioScript = `${plantTa}. நிலை: ${diseaseTa}. காரணம்: ${causeTa}. தீர்வு: ${cureTa}.`;
             
             document.getElementById('report-view').innerHTML = `
                 <div class="glass-card" style="max-width:1000px; margin: 40px auto 0;">
@@ -385,7 +389,7 @@
                             <button onclick="switchView('dashboard'); stopAudio();" class="btn-secondary" style="padding:10px 24px;"><i class="fas fa-arrow-left"></i> Back</button>
                         </div>
                         <div style="display:flex; gap:16px;">
-                            <button onclick="playDiagnosisAudio('${encodeURIComponent(audioScript)}')" class="btn-primary" style="padding:10px 24px; background:#8b5cf6; border-color:#8b5cf6; color:white;"><i class="fas fa-volume-up"></i> 🔊 தமிழில் கேட்க</button>
+                            <button onclick="playDiagnosisAudio()" class="btn-primary" style="padding:10px 24px; background:#8b5cf6; border-color:#8b5cf6; color:white;"><i class="fas fa-volume-up"></i> 🔊 தமிழில் கேட்க</button>
                             <button onclick="downloadPDF()" class="btn-primary" style="padding:10px 24px; background:#2563eb;"><i class="fas fa-file-pdf"></i> Download PDF</button>
                         </div>
                     </div>
