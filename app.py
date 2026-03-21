@@ -167,7 +167,7 @@ Respond ONLY in this JSON format:
         'is_healthy': is_healthy,
         'severity': round(severity, 2),
         'tamil': tamil_data,
-
+        'is_plant': True,
         'is_valid': True,
         'error_message': '',
         'error_tamil': '',
@@ -197,7 +197,9 @@ def uploadimage():
             'is_healthy': result['is_healthy'],
             'severity': result['severity'],
             'tamil': result['tamil'],
+            'is_plant': result.get('is_plant', False),
             'is_valid': result['is_valid'],
+            'error_message': result.get('error_message', ''),
             'current_time': datetime.now().strftime("%b %d, %Y %I:%M %p")
         })
 
