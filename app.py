@@ -124,22 +124,6 @@ Respond ONLY in this JSON format:
             'is_valid': False,
             'error_message': f'Diagnostic Failure: {last_error}',
         }
-    except Exception as e:
-        import traceback
-        err_msg = traceback.format_exc()
-        print(f"Prediction Error:\n{err_msg}")
-        return {
-            'prediction': {'cause': 'Error during AI analysis', 'cure': 'Please check back later'},
-            'confidence': 0,
-            'plant_name': 'Error',
-            'disease_name': 'Inconclusive',
-            'is_healthy': False,
-            'severity': 0.0,
-            'tamil': {'plant': 'பிழை', 'disease': 'பிழை', 'cause': 'AI பகுப்பாய்வு பிழை', 'cure': 'பின்னர் முயற்சிக்கவும்'},
-            'is_valid': False,
-            'error_message': f'API/Startup Error: {str(e)}',
-            'error_tamil': 'AI மாடல் மூலம் படத்தை சரிபார்க்க முடியவில்லை.',
-        }
 
     # Process identification results
     plant_name = data.get("plant_name", "Unknown Specimen")
