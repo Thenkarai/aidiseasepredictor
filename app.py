@@ -8,6 +8,10 @@ from google import genai
 from google.genai import types
 from PIL import Image
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env for local development
+load_dotenv()
 
 app = Flask(__name__)
 
