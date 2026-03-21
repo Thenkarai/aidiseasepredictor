@@ -362,51 +362,25 @@
             const isHealthy = diseaseEn === 'Healthy';
             const severity = isHealthy ? 0 : Math.floor(Math.random() * (85 - 40) + 40);
             
-            // 2. Map disease names dynamically utilizing STRICT STATIC MAPPING to prevent API failures
-            const tamilDictionary = {
-                "Healthy": { name: "ஆரோக்கியமானது", cure: "" },
-                "Leaf Blight": { name: "இலை கறை நோய்", cure: "நீம் எண்ணெய் பயன்படுத்தவும்." },
-                "Powdery Mildew": { name: "பூஞ்சை நோய்", cure: "கந்தகம் கலந்த மருந்துகளை தெளிக்கவும்." },
-                "Apple Scab": { name: "ஆப்பிள் கரும்படை நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
-                "Apple Black Rot": { name: "ஆப்பிள் அழுகல் நோய்", cure: "பாதிக்கப்பட்ட பகுதிகளை அகற்றுங்கள்." },
-                "Cedar Rust": { name: "துரு நோய்", cure: "தகுந்த ரசாயனங்களை தெளிக்கவும்." },
-                "Cercospora Leaf Spot": { name: "இலைப்புள்ளி நோய்", cure: "பயிர்களை சுழற்சி முறையில் பயிரிடவும்." },
-                "Common Rust": { name: "பொதுவான துரு நோய்", cure: "எதிர்ப்பு திறன் கொண்ட விதைகளை பயன்படுத்தவும்." },
-                "Black Rot": { name: "கருப்பு அழுகல்", cure: "பாதிக்கப்பட்ட பழங்களை அகற்றவும்." },
-                "Esca": { name: "எஸ்கா நோய்", cure: "பாதிக்கப்பட்ட கிளைகளை வெட்டவும்." },
-                "Huanglongbing": { name: "எலுமிச்சை வாடல் நோய்", cure: "பாதிக்கப்பட்ட மரங்களை அகற்றவும்." },
-                "Bacterial spot": { name: "பாக்டீரியா இலைப்புள்ளி", cure: "பாக்டீரியா கொல்லியை தெளிக்கவும்." },
-                "Early blight": { name: "ஆரம்ப கருகல் நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
-                "Late blight": { name: "தாமத கருகல் நோய்", cure: "பூஞ்சை கொல்லியை பயன்படுத்தவும்." },
-                "Leaf scorch": { name: "இலை கருகல்", cure: "பாதிக்கப்பட்ட இலைகளை அகற்றவும்." },
-                "Leaf Mold": { name: "இலை பூஞ்சை", cure: "காற்றோட்டத்தை அதிகரிக்கவும்." },
-                "Septoria leaf spot": { name: "செப்டோரியா இலைப்புள்ளி", cure: "பூஞ்சை கொல்லியை தெளிக்கவும்." },
-                "Spider mites": { name: "சிலந்தி பூச்சி", cure: "நீம் எண்ணெய் பயன்படுத்தவும்." },
-                "Target Spot": { name: "இலக்கு புள்ளி", cure: "தகுந்த ரசாயனங்களை பயன்படுத்தவும்." },
-                "Yellow Leaf Curl Virus": { name: "மஞ்சள் இலை சுருள் வைரஸ்", cure: "வைரஸ் பரப்பும் பூச்சிகளை கட்டுப்படுத்தவும்." },
-                "mosaic virus": { name: "மொசைக் வைரஸ்", cure: "பாதிக்கப்பட்ட செடிகளை அழிக்கவும்." }
-            };
-
-            let diseaseTa = "கண்டறியப்படாத நோய்";
-            let cureTa = "தகுந்த விவசாய நிபுணரை அணுகவும்.";
-            
-            // Fuzzy search the dictionary for a perfect translation match
-            if (isHealthy) {
-                diseaseTa = "ஆரோக்கியமானது";
-                cureTa = "";
-            } else {
-                for (let eng in tamilDictionary) {
-                    if (diseaseEn.toLowerCase().includes(eng.toLowerCase())) {
-                        diseaseTa = tamilDictionary[eng].name;
-                        cureTa = tamilDictionary[eng].cure;
-                        break;
-                    }
-                }
+            // 2. Shorten complex backend strings for beautiful UI visuals
+            function truncateText(txt) {
+                if (!txt) return "N/A";
+                let clean = txt.replace(/[0-9]+\.\s*/g, '').replace(/\n/g, ' ').trim();
+                let sentences = clean.split('.');
+                return sentences[0] + (sentences.length > 1 && sentences[0].length > 0 ? '.' : '');
             }
+            const shortCauseEn = isHealthy ? "No specific issues detected." : truncateText(causeEn);
+            const shortCureEn = isHealthy ? "Continue optimal care routines." : truncateText(cureEn);
 
-            // Optional static UI text output (Visual Only)
-            const plantTa = plantEn; // We bypass strict plant translation if dict handles it or keep original
-            const causeTa = "தெரியவில்லை"; // Fallback visual
+            // 3. Dynamic UI Translation Pipeline (Bilingual execution restored since TTS logic was fully deleted)
+            document.getElementById('analysis-loader').style.display = 'flex';
+            
+            const plantTa = await translateText(plantEn, 'ta');
+            const diseaseTa = isHealthy ? 'ஆரோக்கியமானது' : await translateText(diseaseEn, 'ta');
+            const causeTa = isHealthy ? 'குறிப்பிட்ட பிரச்சினைகள் ஏதுமில்லை.' : await translateText(shortCauseEn, 'ta');
+            const cureTa = isHealthy ? 'சரியான பராமரிப்பு முறைகளை தொடரவும்.' : await translateText(shortCureEn, 'ta');
+            
+            document.getElementById('analysis-loader').style.display = 'none';
             
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
             
@@ -428,26 +402,26 @@
                             <div>
                                 <img src="${data.imagepath}" style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-soft); border:1px solid var(--border-color);">
                                 
-                                <!-- Progress Meters -->
-                                <div style="margin-top:24px; padding: 16px; background: var(--bg-main); border-radius: 12px; border: 1px solid var(--border-color);">
-                                    <div style="margin-bottom: ${isHealthy ? '0' : '16px'};">
-                                        <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
+                                <!-- Premium Progress Meters -->
+                                <div style="margin-top:24px; padding: 20px; background: rgba(255,255,255,0.02); backdrop-filter: blur(8px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                                    <div style="margin-bottom: ${isHealthy ? '0' : '20px'};">
+                                        <div style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:8px; font-weight:600; color:var(--text-primary);">
                                             <span>AI Confidence (நம்பகத்தன்மை)</span>
-                                            <span style="color:#8b5cf6;">${conf}/100</span>
+                                            <span style="color:#a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);">${conf}/100</span>
                                         </div>
-                                        <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
-                                            <div style="width:${conf}%; height:100%; background:#8b5cf6; border-radius:4px; transition: width 1s ease-out;"></div>
+                                        <div style="height:10px; background:rgba(0,0,0,0.06); border-radius:5px; overflow:hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                                            <div style="width:${conf}%; height:100%; background: linear-gradient(90deg, #8b5cf6, #c084fc); border-radius:5px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);"></div>
                                         </div>
                                     </div>
                                     
                                     ${!isHealthy ? `
                                     <div>
-                                        <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
+                                        <div style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:8px; font-weight:600; color:var(--text-primary);">
                                             <span>Disease Severity (பாதிப்பு அளவு)</span>
-                                            <span style="color:#ef4444;">${severity}/100</span>
+                                            <span style="color:#f43f5e; text-shadow: 0 0 8px rgba(244, 63, 94, 0.4);">${severity}/100</span>
                                         </div>
-                                        <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
-                                            <div style="width:${severity}%; height:100%; background:#ef4444; border-radius:4px; transition: width 1s ease-out;"></div>
+                                        <div style="height:10px; background:rgba(0,0,0,0.06); border-radius:5px; overflow:hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                                            <div style="width:${severity}%; height:100%; background: linear-gradient(90deg, #ef4444, #fb7185); border-radius:5px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);"></div>
                                         </div>
                                     </div>
                                     ` : ''}
@@ -463,14 +437,14 @@
                                 <h3 style="font-size:1.3rem; color:${statusColor}; font-weight:500; margin-bottom: 30px; font-family:'Inter', sans-serif; opacity: 0.85;">நிலை: ${diseaseTa}</h3>
                                 
                                 <div style="display:flex; flex-direction:column; gap:30px;">
-                                    <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                                    <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); display: ${isHealthy ? 'none' : 'block'};">
                                         <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:12px;">Botanical Condition / காரணம்</h4>
-                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary); margin-bottom:10px;"><b>EN:</b> ${causeEn}</p>
+                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary); margin-bottom:10px;"><b>EN:</b> ${shortCauseEn}</p>
                                         <p style="font-size:1.05rem; line-height:1.6; color:var(--secondary);"><b>TA:</b> ${causeTa}</p>
                                     </div>
-                                    <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:12px;">Suggested Agricultural Treatment / தீர்வு</h4>
-                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary); margin-bottom:10px;"><b>EN:</b> ${cureEn}</p>
+                                    <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); display: ${isHealthy ? 'none' : 'block'};">
+                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:12px;">Suggested Treatment / தீர்வு</h4>
+                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary); margin-bottom:10px;"><b>EN:</b> ${shortCureEn}</p>
                                         <p style="font-size:1.05rem; line-height:1.6; color:var(--secondary);"><b>TA:</b> ${cureTa}</p>
                                     </div>
                                 </div>
@@ -479,11 +453,6 @@
                     </div>
                 </div>`;
             switchView('analytics');
-            
-            // Auto Voice Telemetry execution
-            if (autoVoiceEnabled) {
-                setTimeout(() => { playDiagnosisAudio(); }, 600);
-            }
         }
 
         function loadFromArchive(idx) {
