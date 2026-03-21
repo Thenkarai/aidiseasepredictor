@@ -43,6 +43,15 @@
             .report-actions { flex-direction: column; width: 100%; }
             .report-actions button { width: 100%; justify-content: center; }
         }
+        
+        /* Language Toggle Button Style extension */
+        .lang-toggle-btn {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--card-bg); display: flex; align-items: center; justify-content: center;
+            color: var(--primary-dark); border: 1px solid var(--border-color); cursor: pointer;
+            transition: all 0.3s ease; font-weight: 700; font-size: 0.85rem;
+        }
+        .lang-toggle-btn:hover { background: var(--accent); transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -54,29 +63,34 @@
             <span>AgroAI</span>
         </div>
         <div class="nav-menu">
-            <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash">Dashboard</a>
-            <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics">Analytics</a>
+            <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash" data-i18n="nav_dashboard">Dashboard</a>
+            <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics" data-i18n="nav_analytics">Analytics</a>
         </div>
         
-        <!-- Theme Toggle -->
-        <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle Theme">
-            <i class="fas fa-moon"></i>
-        </button>
+        <div style="display:flex; gap:10px;">
+            <!-- Language Toggle -->
+            <button class="lang-toggle-btn" onclick="toggleLanguage()" id="langToggleBtn" aria-label="Toggle Language">EN</button>
+            
+            <!-- Theme Toggle -->
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle Theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
     </nav>
 
     <!-- Scanner Overlays -->
     <div id="camera-modal">
         <video id="camera-video" autoplay playsinline></video>
         <div style="display:flex; gap:16px; flex-wrap: wrap; justify-content: center; width: 100%;">
-            <button class="btn-primary" onclick="capturePhoto()"><i class="fas fa-camera"></i> Capture</button>
-            <button class="btn-secondary" onclick="closeCamera()">Cancel</button>
+            <button class="btn-primary" onclick="capturePhoto()"><i class="fas fa-camera"></i> <span data-i18n="btn_capture">Capture</span></button>
+            <button class="btn-secondary" onclick="closeCamera()"><span data-i18n="btn_cancel">Cancel</span></button>
         </div>
         <canvas id="camera-canvas" style="display:none;"></canvas>
     </div>
 
     <div id="analysis-loader">
         <div class="loading-ring"></div>
-        <p style="font-weight:500; font-size:1.1rem; color:var(--primary-dark);">Analyzing specimen...</p>
+        <p style="font-weight:500; font-size:1.1rem; color:var(--primary-dark);" data-i18n="loader_analyzing">Analyzing specimen...</p>
     </div>
 
     <!-- Main Application -->
@@ -85,26 +99,26 @@
             
             <!-- SaaS Greeting Hero -->
             <div class="hero-header">
-                <h1 class="greeting-title">Good Morning, Farmer <span style="color:var(--secondary);">🌿</span></h1>
-                <p class="greeting-subtitle">Here is your daily crop intelligence report. System sensors indicate optimal hydration levels across the main quadrant.</p>
+                <h1 class="greeting-title"><span data-i18n="hero_greeting">Good Morning, Farmer</span> <span style="color:var(--secondary);">🌿</span></h1>
+                <p class="greeting-subtitle" data-i18n="hero_subtitle">Here is your daily crop intelligence report. System sensors indicate optimal hydration levels across the main quadrant.</p>
             </div>
 
             <!-- Top Metrics Cards -->
             <div class="metrics-row">
                 <div class="metric-card">
-                    <div class="metric-header"><span>Hydration Level</span> <i class="fas fa-droplet"></i></div>
+                    <div class="metric-header"><span data-i18n="metric_hydration">Hydration Level</span> <i class="fas fa-droplet"></i></div>
                     <div class="metric-value">82%</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-header"><span>Soil pH</span> <i class="fas fa-flask"></i></div>
+                    <div class="metric-header"><span data-i18n="metric_soil">Soil pH</span> <i class="fas fa-flask"></i></div>
                     <div class="metric-value">6.8</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-header"><span>Core Temp</span> <i class="fas fa-temperature-half"></i></div>
+                    <div class="metric-header"><span data-i18n="metric_temp">Core Temp</span> <i class="fas fa-temperature-half"></i></div>
                     <div class="metric-value">24°C</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-header"><span>Air Quality</span> <i class="fas fa-wind"></i></div>
+                    <div class="metric-header"><span data-i18n="metric_air">Air Quality</span> <i class="fas fa-wind"></i></div>
                     <div class="metric-value">98 <span style="font-size:0.9rem; color:var(--text-muted); font-weight:400;">AQI</span></div>
                 </div>
             </div>
@@ -115,32 +129,32 @@
                 <!-- Scanner Hub (Centered & Spacious) -->
                 <div class="glass-card scanner-hub">
                     <div class="scanner-illustration"><i class="fas fa-microscope"></i></div>
-                    <h2 class="card-title">Disease Diagnostics</h2>
-                    <p class="card-desc">Upload a high-resolution image of the affected leaf, or use your device camera to run a real-time neural analysis.</p>
+                    <h2 class="card-title" data-i18n="hub_title">Disease Diagnostics</h2>
+                    <p class="card-desc" data-i18n="hub_desc">Upload a high-resolution image of the affected leaf, or use your device camera to run a real-time neural analysis.</p>
                     
                     <div style="display:flex; gap:16px;">
-                        <button class="btn-primary" onclick="openCamera()"><i class="fas fa-video"></i> Open Camera</button>
-                        <button class="btn-secondary" onclick="document.getElementById('file-input').click()"><i class="fas fa-cloud-upload-alt"></i> Upload Photo</button>
+                        <button class="btn-primary" onclick="openCamera()"><i class="fas fa-video"></i> <span data-i18n="btn_camera">Open Camera</span></button>
+                        <button class="btn-secondary" onclick="document.getElementById('file-input').click()"><i class="fas fa-cloud-upload-alt"></i> <span data-i18n="btn_upload">Upload Photo</span></button>
                     </div>
                 </div>
 
                 <!-- Advisory / Trends Feed -->
                 <div class="glass-card">
-                    <h2 class="card-title">Daily Advisory</h2>
-                    <p class="card-desc" style="margin-bottom:15px;">AI-generated farming insights.</p>
+                    <h2 class="card-title" data-i18n="advisory_title">Daily Advisory</h2>
+                    <p class="card-desc" style="margin-bottom:15px;" data-i18n="advisory_desc">AI-generated farming insights.</p>
                     <div class="advisory-list">
                         <div class="advisory-item">
                             <div class="advisory-icon"><i class="fas fa-sun"></i></div>
                             <div class="advisory-text">
-                                <h4>Optimal UV Exposure</h4>
-                                <p>Current sunlight aligns perfectly with the growth cycle.</p>
+                                <h4 data-i18n="adv_uv_title">Optimal UV Exposure</h4>
+                                <p data-i18n="adv_uv_desc">Current sunlight aligns perfectly with the growth cycle.</p>
                             </div>
                         </div>
                         <div class="advisory-item">
                             <div class="advisory-icon"><i class="fas fa-shield-virus"></i></div>
                             <div class="advisory-text">
-                                <h4>Blight Risk Low</h4>
-                                <p>Humidity levels remain below the danger threshold.</p>
+                                <h4 data-i18n="adv_blight_title">Blight Risk Low</h4>
+                                <p data-i18n="adv_blight_desc">Humidity levels remain below the danger threshold.</p>
                             </div>
                         </div>
                     </div>
@@ -150,15 +164,15 @@
             <!-- History Table -->
             <div class="data-table-wrapper">
                 <div class="data-header">
-                    <h2 class="card-title" style="margin:0;">Recent Scans</h2>
+                    <h2 class="card-title" style="margin:0;" data-i18n="table_title">Recent Scans</h2>
                 </div>
                 <table class="c-table">
                     <thead>
                         <tr>
-                            <th>Unit ID</th>
-                            <th>Health Status</th>
-                            <th>Timestamp</th>
-                            <th>Action</th>
+                            <th data-i18n="th_unit">Unit ID</th>
+                            <th data-i18n="th_health">Health Status</th>
+                            <th data-i18n="th_time">Timestamp</th>
+                            <th data-i18n="th_action">Action</th>
                         </tr>
                     </thead>
                     <tbody id="container-body">
@@ -179,6 +193,65 @@
 
     <!-- Application Logic -->
     <script>
+        // --- I18N TAMIL ENGINE ---
+        const dictionary = {
+            "en": {
+                "nav_dashboard": "Dashboard", "nav_analytics": "Analytics",
+                "btn_capture": "Capture", "btn_cancel": "Cancel", "loader_analyzing": "Analyzing specimen...",
+                "hero_greeting": "Good Morning, Farmer", "hero_subtitle": "Here is your daily crop intelligence report. System sensors indicate optimal hydration levels across the main quadrant.",
+                "metric_hydration": "Hydration Level", "metric_soil": "Soil pH", "metric_temp": "Core Temp", "metric_air": "Air Quality",
+                "hub_title": "Disease Diagnostics", "hub_desc": "Upload a high-resolution image of the affected leaf, or use your device camera to run a real-time neural analysis.",
+                "btn_camera": "Open Camera", "btn_upload": "Upload Photo",
+                "advisory_title": "Daily Advisory", "advisory_desc": "AI-generated farming insights.",
+                "adv_uv_title": "Optimal UV Exposure", "adv_uv_desc": "Current sunlight aligns perfectly with the growth cycle.",
+                "adv_blight_title": "Blight Risk Low", "adv_blight_desc": "Humidity levels remain below the danger threshold.",
+                "table_title": "Recent Scans", "th_unit": "Unit ID", "th_health": "Health Status", "th_time": "Timestamp", "th_action": "Action",
+                "empty_table": "No recent scans found. Create a new diagnostic to begin.", "just_now": "Just now", "view_report": "View Report",
+                "btn_back": "Back", "btn_pdf": "Download PDF", "report_label": "Diagnostic Report", "status_label": "Status:",
+                "rep_cond": "Botanical Condition", "rep_treat": "Suggested Agricultural Treatment"
+            },
+            "ta": {
+                "nav_dashboard": "கட்டுப்பாட்டு அறை", "nav_analytics": "பகுப்பாய்வு",
+                "btn_capture": "படம் எடு", "btn_cancel": "ரத்து", "loader_analyzing": "பகுப்பாய்வு நடக்கிறது...",
+                "hero_greeting": "காலை வணக்கம், விவசாயி", "hero_subtitle": "இன்றைய பயிர் நுண்ணறிவு அறிக்கை. முக்கிய வயல்களில் நீர்ச்சத்து உகந்த அளவில் உள்ளது.",
+                "metric_hydration": "நீர்ச்சத்து", "metric_soil": "மண் pH", "metric_temp": "வெப்பநிலை", "metric_air": "காற்றின் தரம்",
+                "hub_title": "நோய் கண்டறிதல்", "hub_desc": "பாதிக்கப்பட்ட இலையின் புகைப்படத்தை பதிவேற்றவும் அல்லது கேமராவை பயன்படுத்தி நிகழ்நேர பகுப்பாய்வு செய்யவும்.",
+                "btn_camera": "கேமரா", "btn_upload": "பதிவேற்று",
+                "advisory_title": "தினசரி ஆலோசனை", "advisory_desc": "AI மூலம் பெறப்பட்ட நுண்ணறிவுகள்.",
+                "adv_uv_title": "உகந்த சூரிய ஒளி", "adv_uv_desc": "தற்போதைய சூரிய ஒளி பயிர் வளர்ச்சிக்கு ஏற்றவாறு உள்ளது.",
+                "adv_blight_title": "குறைந்த பாதிப்பு அபாயம்", "adv_blight_desc": "ஈரப்பதம் அபாய அளவிற்குக் குறைவாக உள்ளது.",
+                "table_title": "சமீபத்திய ஸ்கேன்கள்", "th_unit": "பயன்பாடு ID", "th_health": "சுகாதார நிலை", "th_time": "நேரம்", "th_action": "செயல்",
+                "empty_table": "ஸ்கேன்கள் இல்லை. புதிய பரிசோதனையைத் தொடங்கவும்.", "just_now": "இப்போது", "view_report": "அறிக்கை",
+                "btn_back": "திரும்பு", "btn_pdf": "PDF பதிவிறக்கு", "report_label": "கண்டறிதல் அறிக்கை", "status_label": "நிலை:",
+                "rep_cond": "உயிரியல் நிலை", "rep_treat": "பரிந்துரைக்கப்பட்ட விவசாய சிகிச்சை"
+            }
+        };
+
+        let currentLang = localStorage.getItem('agro-lang') || 'en';
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dictionary[currentLang][key]) {
+                    el.innerText = dictionary[currentLang][key];
+                }
+            });
+            document.getElementById('langToggleBtn').innerText = currentLang === 'en' ? 'EN' : 'TA';
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ta' : 'en';
+            localStorage.setItem('agro-lang', currentLang);
+            applyTranslations();
+            renderContainers(); // Re-render table to catch dynamic strings
+        }
+
+        // Apply immediately
+        document.addEventListener("DOMContentLoaded", applyTranslations);
+
+        // --- END I18N ---
+
+
         // Theme Management (Dark/Light Mode)
         function toggleTheme() {
             const body = document.body;
@@ -196,7 +269,6 @@
             }
         }
 
-        // Initialize theme on load
         if (localStorage.getItem('agro-theme') === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
             document.getElementById('themeToggleBtn').innerHTML = '<i class="fas fa-sun"></i>';
@@ -209,7 +281,7 @@
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 document.getElementById('camera-video').srcObject = stream;
                 document.getElementById('camera-modal').style.display = 'flex';
-            } catch (err) { alert("Camera access denied: " + err.message); }
+            } catch (err) { alert("Camera error: " + err.message); }
         }
 
         function closeCamera() {
@@ -260,7 +332,7 @@
             const tbody = document.getElementById('container-body');
             
             if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">No recent scans found. Create a new diagnostic to begin.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">${dictionary[currentLang]['empty_table']}</td></tr>`;
                 return;
             }
 
@@ -271,8 +343,8 @@
                 <tr>
                     <td style="font-weight:600; color:var(--primary-dark);">UID-${1000 + idx}</td>
                     <td><span class="badge ${badgeClass}">${item.disease_name}</span></td>
-                    <td style="color:var(--text-muted);">${item.current_time || 'Just now'}</td>
-                    <td><button onclick="loadFromArchive(${idx})" style="background:transparent; border:none; color:var(--secondary); font-weight:600; cursor:pointer; font-family:'Inter', sans-serif;">View Report</button></td>
+                    <td style="color:var(--text-muted);">${item.current_time || dictionary[currentLang]['just_now']}</td>
+                    <td><button onclick="loadFromArchive(${idx})" style="background:transparent; border:none; color:var(--secondary); font-weight:600; cursor:pointer; font-family:'Inter', sans-serif;">${dictionary[currentLang]['view_report']}</button></td>
                 </tr>
             `}).join('');
         }
@@ -280,7 +352,7 @@
         function saveToTwin(data) {
             let history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
             history.unshift(data);
-            localStorage.setItem('agro-twin-containers', JSON.stringify(history.slice(0, 15))); // Keep last 15
+            localStorage.setItem('agro-twin-containers', JSON.stringify(history.slice(0, 15)));
             renderContainers();
         }
 
@@ -288,21 +360,18 @@
         function downloadPDF() {
             const element = document.getElementById('printable-report');
             const opt = {
-                margin:       [10, 10, 10, 10], // top, left, bottom, right
+                margin:       [10, 10, 10, 10], 
                 filename:     `AgroAI_Diagnostic_Report_${new Date().getTime()}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, backgroundColor: document.body.getAttribute('data-theme') === 'dark' ? '#1E1E1E' : '#ffffff' },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
-            // Temporary class to ensure PDF renders crisply
             element.classList.add('pdf-mode');
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.classList.remove('pdf-mode');
-            });
+            html2pdf().set(opt).from(element).save().then(() => element.classList.remove('pdf-mode'));
         }
 
-        // Result View UI (Apple/Stripe Style Report)
+        // Result View UI
         function updateUI(data) {
             const isHealthy = data.disease_name === 'Healthy';
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
@@ -311,8 +380,8 @@
                 <div class="glass-card" style="max-width:1000px; margin: 40px auto 0;">
                     
                     <div class="report-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; gap: 16px;">
-                        <button onclick="switchView('dashboard')" class="btn-secondary" style="padding:10px 24px;"><i class="fas fa-arrow-left"></i> Back</button>
-                        <button onclick="downloadPDF()" class="btn-primary" style="padding:10px 24px; background:#2563eb;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                        <button onclick="switchView('dashboard')" class="btn-secondary" style="padding:10px 24px;"><i class="fas fa-arrow-left"></i> <span data-i18n="btn_back">${dictionary[currentLang]['btn_back']}</span></button>
+                        <button onclick="downloadPDF()" class="btn-primary" style="padding:10px 24px; background:#2563eb;"><i class="fas fa-file-pdf"></i> <span data-i18n="btn_pdf">${dictionary[currentLang]['btn_pdf']}</span></button>
                     </div>
                     
                     <div id="printable-report" style="padding:20px; border-radius:12px;">
@@ -321,17 +390,17 @@
                                 <img src="${data.imagepath}" style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-soft); border:1px solid var(--border-color);">
                             </div>
                             <div>
-                                <span style="color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Diagnostic Report</span>
+                                <span style="color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;" data-i18n="report_label">${dictionary[currentLang]['report_label']}</span>
                                 <h2 style="font-size:2.8rem; margin:8px 0; letter-spacing:-1px; color:var(--primary-dark);">${data.plant_name}</h2>
-                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 30px;">Status: ${data.disease_name}</h3>
+                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 30px;"><span data-i18n="status_label">${dictionary[currentLang]['status_label']}</span> ${data.disease_name}</h3>
                                 
                                 <div style="display:flex; flex-direction:column; gap:24px;">
                                     <div>
-                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;">Botanical Condition</h4>
+                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;" data-i18n="rep_cond">${dictionary[currentLang]['rep_cond']}</h4>
                                         <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${data.prediction.cause}</p>
                                     </div>
                                     <div>
-                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;">Suggested Agricultural Treatment</h4>
+                                        <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;" data-i18n="rep_treat">${dictionary[currentLang]['rep_treat']}</h4>
                                         <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${data.prediction.cure}</p>
                                     </div>
                                 </div>
@@ -342,11 +411,8 @@
             switchView('analytics');
         }
 
-        function loadFromArchive(idx) {
-            updateUI(JSON.parse(localStorage.getItem('agro-twin-containers'))[idx]);
-        }
-
         // Init
+        applyTranslations();
         renderContainers();
     </script>
 </body>
