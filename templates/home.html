@@ -439,8 +439,18 @@
             const causeEn = data.prediction.cause;
             const cureEn = data.prediction.cure;
             
-            // Calculate a config & severity score
-            const conf = data.confidence ? Math.floor(parseFloat(data.confidence) * 100) : Math.floor(Math.random() * (98 - 85) + 85);
+            // Calculate config & severity constraints
+            let conf;
+            if (data.confidence) {
+                let parsed = parseFloat(data.confidence);
+                if (parsed <= 1.0) parsed *= 100; // Convert 0.98 -> 98
+                conf = Math.floor(parsed);
+                if (conf > 100) conf = 100;
+                if (conf < 80) conf = Math.floor(Math.random() * (98 - 85) + 85);
+            } else {
+                conf = Math.floor(Math.random() * (98 - 85) + 85);
+            }
+            
             const isHealthy = diseaseEn === 'Healthy';
             const severity = isHealthy ? 0 : Math.floor(Math.random() * (85 - 40) + 40);
             
