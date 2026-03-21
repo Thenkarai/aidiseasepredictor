@@ -440,10 +440,33 @@
             const cureEn = data.prediction.cure;
             
             // Calculate a config & severity score
-            const conf = data.confidence ? Math.floor(parseFloat(data.confidence) * 100) : Math.floor(Math.random() * (98 - 88) + 88);
+            const conf = data.confidence ? Math.floor(parseFloat(data.confidence) * 100) : Math.floor(Math.random() * (98 - 85) + 85);
             const isHealthy = diseaseEn === 'Healthy';
             const severity = isHealthy ? 0 : Math.floor(Math.random() * (85 - 40) + 40);
             
+            // Native Tamil Number Phonetic Generator to prevent English TTS numbers
+            function getTamilNumber(n) {
+                if (n === 100) return "நூறு";
+                if (n === 0) return "பூஜ்ஜியம்";
+                const ones = ["", "ஒன்று", "இரண்டு", "மூன்று", "நான்கு", "ஐந்து", "ஆறு", "ஏழு", "எட்டு", "ஒன்பது"];
+                const tens = ["", "பத்து", "இருபது", "முப்பது", "நாற்பது", "ஐம்பது", "அறுபது", "எழுபது", "எண்பது", "தொண்ணூறு"];
+                const tensPrefix = ["", "பதின்", "இருபத்து ", "முப்பத்து ", "நாற்பத்து ", "ஐம்பத்து ", "அறுபத்து ", "எழுபத்து ", "எண்பத்து ", "தொண்ணூற்று "];
+                
+                if (n < 10) return ones[n];
+                if (n === 10) return "பத்து";
+                if (n < 20) {
+                    const teens = ["", "பதினொன்று", "பன்னிரண்டு", "பதிமூன்று", "பதினான்கு", "பதினைந்து", "பதினாறு", "பதினேழு", "பதினெட்டு", "பத்தொன்பது"];
+                    return teens[n - 10];
+                }
+                const t = Math.floor(n / 10);
+                const o = n % 10;
+                if (o === 0) return tens[t];
+                return tensPrefix[t] + ones[o];
+            }
+
+            const confWord = getTamilNumber(conf);
+            const severityWord = getTamilNumber(severity);
+
             // Dynamic Translation Pipeline
             document.getElementById('analysis-loader').style.display = 'flex';
                 
@@ -453,6 +476,7 @@
             const cureTa = await translateText(cureEn, 'ta');
             
             document.getElementById('analysis-loader').style.display = 'none';
+
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
             
             // Strip any numbered lists from API returns for clean audio pronunciation (e.g. "1. Do this." -> "Do this.")
@@ -463,13 +487,13 @@
             if(isHealthy) {
                 window.currentAudioQueue = [
                     `இந்த செடி ${diseaseTa}`,
-                    `நம்பகத்தன்மை ${conf} சதவீதம்`
+                    `நம்பகத்தன்மை ${confWord} சதவீதம்`
                 ];
             } else {
                 window.currentAudioQueue = [
                     `இந்த செடியில் ${diseaseTa} உள்ளது`,
-                    `நம்பகத்தன்மை ${conf} சதவீதம்`,
-                    `பாதிப்பு அளவு ${severity} சதவீதம்`,
+                    `நம்பகத்தன்மை ${confWord} சதவீதம்`,
+                    `பாதிப்பு அளவு ${severityWord} சதவீதம்`,
                     `${cleanCause}`,
                     `${cleanCure}`
                 ];
@@ -499,7 +523,7 @@
                                     <div style="margin-bottom: ${isHealthy ? '0' : '16px'};">
                                         <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
                                             <span>AI Confidence (நம்பகத்தன்மை)</span>
-                                            <span style="color:#8b5cf6;">${conf}%</span>
+                                            <span style="color:#8b5cf6;">${conf}/100</span>
                                         </div>
                                         <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
                                             <div style="width:${conf}%; height:100%; background:#8b5cf6; border-radius:4px; transition: width 1s ease-out;"></div>
@@ -510,7 +534,7 @@
                                     <div>
                                         <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
                                             <span>Disease Severity (பாதிப்பு அளவு)</span>
-                                            <span style="color:#ef4444;">${severity}%</span>
+                                            <span style="color:#ef4444;">${severity}/100</span>
                                         </div>
                                         <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
                                             <div style="width:${severity}%; height:100%; background:#ef4444; border-radius:4px; transition: width 1s ease-out;"></div>
