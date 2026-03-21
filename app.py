@@ -4,8 +4,7 @@ import os
 import base64
 import io
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from PIL import Image
 from datetime import datetime
 from dotenv import load_dotenv
@@ -20,31 +19,12 @@ print(f"Server starting - Python {os.sys.version}")
 print(f"Environment GEMINI_API_KEY: {'Set' if os.getenv('GEMINI_API_KEY') else 'NOT SET'}")
 
 # Configure Gemini Client
-client = None
-
-
-# Plant Doctor AI - Premium Recognition System
-SUPPORTED_PLANTS = []
-
-CONFIDENCE_THRESHOLD = 40  # Below this = not recognized
-
-
-
-# The uploadimages route is no longer needed because images are handled in-memory.
-# If needed, you can serve static files via Flask's static folder.
-
-
-
-@app.route('/', methods=['GET'])
-def home():
-    try:
-        return render_template('home.html')
-    except Exception as e:
-        print(f"Home Page Error: {str(e)}")
-        return f"<h1>Internal Error</h1><p>{str(e)}</p>", 500
+api_key = os.getenv("GEMINI_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
 
 def model_predict(image_bytes):
-    """Run prediction and return disease info + confidence data using Gemini API."""
+    """Run prediction using google-generativeai SDK."""
     try:
         img = Image.open(io.BytesIO(image_bytes))
     except Exception as e:
@@ -57,8 +37,7 @@ def model_predict(image_bytes):
             'severity': 0.0,
             'tamil': {'plant': '', 'disease': '', 'cause': '', 'cure': ''},
             'is_valid': False,
-            'error_message': 'Uploaded image file is corrupted or unsupported. Please use JPG/PNG.',
-            'error_tamil': 'பதிவேற்றப்பட்ட படம் சேதமடைந்துள்ளது அல்லது ஆதரிக்கப்படவில்லை. தயவுசெய்து JPG/PNG படத்தை போடுங்க.',
+            'error_message': 'Format Error: Please upload JPG/PNG.',
         }
 
     prompt = """
@@ -97,23 +76,31 @@ Respond ONLY in this JSON format:
 }
 """
     try:
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set.")
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content([prompt, img])
+        
+        # Extract JSON from response
+        res_text = response.text
+        if "```json" in res_text:
+            res_text = res_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in res_text:
+            res_text = res_text.split("```")[1].split("```")[0].strip()
             
-        global client
-        if client is None:
-            client = genai.Client(api_key=api_key)
-            
-        response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=[prompt, img],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            ),
-        )
-        data = json.loads(response.text)
+        data = json.loads(res_text)
+    except Exception as e:
+        import traceback
+        print(f"Prediction Error:\n{traceback.format_exc()}")
+        return {
+            'prediction': {'cause': 'Engine Error', 'cure': 'Retrying...'},
+            'confidence': 0,
+            'plant_name': 'Error',
+            'disease_name': 'Inconclusive',
+            'is_healthy': False,
+            'severity': 0.0,
+            'tamil': {'plant': 'பிழை', 'disease': 'பிழை', 'cause': '-', 'cure': '-'},
+            'is_valid': False,
+            'error_message': f'API Error: {str(e)}',
+        }
     except Exception as e:
         import traceback
         err_msg = traceback.format_exc()
