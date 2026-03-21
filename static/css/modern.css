@@ -307,6 +307,10 @@ body::before {
     border-radius: 12px;
 }
 
+.severity-status-text.critical { color: #ef4444; }
+.severity-status-text.substantial { color: #f59e0b; }
+.severity-status-text.minimal { color: var(--accent-primary); }
+
 /* Identification Box */
 .id-details-card {
     background: var(--panel-bg);

@@ -145,7 +145,7 @@
                                 <div class="severity-fill" style="width: {{ severity or 0 }}%"></div>
                             </div>
                             <p style="margin-top: 16px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary);">
-                                Classification: <span style="color: {% if (severity or 0) >= 60 %}#ef4444{% elif (severity or 0) >= 35 %}#f59e0b{% else %}var(--accent-primary){% endif %}">
+                                Classification: <span class="severity-status-text {% if (severity or 0) >= 60 %}critical{% elif (severity or 0) >= 35 %}substantial{% else %}minimal{% endif %}">
                                     {% if (severity or 0) >= 60 %}EXTREME{% elif (severity or 0) >= 35 %}SUBSTANTIAL{% elif (severity or 0) >= 15 %}MODERATE{% else %}MINIMAL{% endif %}
                                 </span>
                             </p>
