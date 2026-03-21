@@ -3,47 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Plant Doctor AI — Premium Plant Health Analysis and Disease Recognition.">
-    <title>Plant Doctor AI — Dashboard</title>
+    <meta name="description" content="Plant Doctor AI — Professional Plant Health Analysis and Disease Recognition.">
+    <title>Plant Doctor AI — Expert Dashboard</title>
     <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
     <style>
-        /* Loading Overlay */
+        /* Loading Overlay Overlay */
         #analysis-loader {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(7, 10, 14, 0.92);
-            backdrop-filter: blur(20px);
-            z-index: 9999;
+            background: rgba(3, 5, 8, 0.95);
+            backdrop-filter: blur(30px);
+            z-index: 10000;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 24px;
         }
-        .scanner-line {
-            width: 320px;
-            height: 1px;
-            background: var(--accent-emerald);
-            box-shadow: 0 0 20px var(--accent-emerald);
-            position: relative;
-            animation: scan 2.5s ease-in-out infinite;
+        .loading-ring {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(16, 185, 129, 0.1);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-        @keyframes scan {
-            0%, 100% { top: -40px; opacity: 0; }
-            50% { top: 40px; opacity: 1; }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
-            letter-spacing: 4px;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            opacity: 0.8;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
@@ -53,35 +48,35 @@
     <aside class="sidebar">
         <div class="logo-main"><i class="fas fa-leaf"></i></div>
         <nav class="nav-links">
-            <div class="nav-item active" title="Dashboard"><i class="fas fa-grid-2"></i></div>
-            <div class="nav-item" onclick="document.getElementById('file-input').click()" title="New Scan"><i class="fas fa-plus"></i></div>
-            <div class="nav-item" title="History"><i class="fas fa-history"></i></div>
-            <div class="nav-item" title="Insights"><i class="fas fa-chart-simple"></i></div>
-            <div class="nav-item" title="Settings"><i class="fas fa-gear"></i></div>
+            <div class="nav-item active" onclick="window.location='/'" title="Dashboard"><i class="fas fa-chart-pie-simple"></i></div>
+            <div class="nav-item" onclick="document.getElementById('file-input').click()" title="Analyze Plant"><i class="fas fa-file-arrow-up"></i></div>
+            <div class="nav-item" title="Expert Review"><i class="fas fa-user-doctor"></i></div>
+            <div class="nav-item" title="Treatment Database"><i class="fas fa-book-medical"></i></div>
         </nav>
     </aside>
 
     <main class="main-layout" id="main-container">
-        <!-- Loader -->
+        <!-- Ultimate Loader -->
         <div id="analysis-loader">
-            <div class="scanner-line"></div>
-            <p class="loading-text">Analyzing Specimen</p>
-            <p style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500;">Running Neural Health Diagnostics...</p>
+            <div class="loading-ring"></div>
+            <p class="loading-text">DIAGNOSING SPECIMEN</p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">Decoding botanical DNA signatures...</p>
         </div>
 
         <!-- Top Bar -->
         <header class="top-bar">
             <div class="brand-title">
-                <span class="brand-text">Plant Doctor <span style="color:var(--accent-emerald)">AI</span></span>
+                <span class="brand-text">Plant Doctor <span style="background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">AI</span></span>
             </div>
             
             <div class="search-container">
-                <i class="fas fa-search" style="color:var(--text-secondary); font-size: 0.8rem;"></i>
-                <input type="text" placeholder="Search disease database...">
+                <i class="fas fa-search" style="color:var(--text-secondary);"></i>
+                <input type="text" placeholder="Search disease signatures and treatments...">
             </div>
 
-            <div style="flex: 0 0 80px; display: flex; justify-content: flex-end;">
-                 <i class="fas fa-circle-info" style="color:var(--text-secondary); cursor: help;"></i>
+            <div style="flex: 0 0 100px; display: flex; justify-content: flex-end; gap: 20px;">
+                 <i class="fas fa-circle-question" style="color:var(--text-secondary); cursor: pointer; font-size: 1.2rem;"></i>
+                 <i class="fas fa-bell" style="color:var(--text-secondary); cursor: pointer; font-size: 1.2rem;"></i>
             </div>
         </header>
 
@@ -90,10 +85,12 @@
         <!-- Initial Upload State -->
         <section class="dashboard-grid" style="grid-template-columns: 1fr;">
             <div class="upload-vignette" onclick="document.getElementById('file-input').click()">
-                <div class="vignette-icon"><i class="fas fa-cloud-arrow-up"></i></div>
-                <h2 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 12px">Upload Leaf for Diagnostic</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 24px">Drag and drop or click to select JPG/PNG specimen photo</p>
-                <div style="display: inline-block; padding: 12px 24px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: var(--accent-emerald); border: 1px solid var(--border-glass)">Select File</div>
+                <div class="vignette-icon"><i class="fas fa-shield-virus"></i></div>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 16px">Plant Health Assessment</h2>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 32px; max-width: 600px; margin-inline: auto;">Upload a high-resolution photo of the affected leaf to begin instant AI-powered diagnostic and expert treatment recovery.</p>
+                <div style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: rgba(16, 185, 129, 0.1); border-radius: 16px; font-weight: 700; color: var(--accent-primary); border: 1px solid rgba(16, 185, 129, 0.2); cursor: pointer;">
+                    <i class="fas fa-file-import"></i> Choose Specimen
+                </div>
                 <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
             </div>
         </section>
@@ -101,88 +98,92 @@
         
         <!-- Results State -->
         <section class="dashboard-grid">
-            <!-- Left: Vertical Frame -->
+            <!-- Left: Vertical Specimen View -->
             <div class="plant-preview-vertical">
-                <img src="{{ imagepath }}" alt="Specimen Scan">
+                <img src="{{ imagepath }}" alt="Original Specimen">
                 <div class="preview-overlay">
-                    <p style="font-size: 0.7rem; color: var(--accent-emerald); font-weight: 800; text-transform: uppercase; letter-spacing: 2px">Microscopic View</p>
-                    <p style="font-size: 1.1rem; font-weight: 700; margin-top: 4px">{{ plant_name }} Leaf</p>
+                    <p style="font-size: 0.75rem; color: var(--accent-primary); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px;">Specimen Preview</p>
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700;">{{ plant_name }}</h2>
                 </div>
             </div>
 
-            <!-- Right: Analysis Panel -->
+            <!-- Right: Expert Analysis Panel -->
             <article class="analysis-panel">
                 <div class="analysis-header">
-                    <div>
-                        <h2 class="analysis-title">{{ plant_name|upper }} ANALYSIS REPORT</h2>
-                        <p class="analysis-meta">Timestamp: {{ current_time or 'Mar 21, 2026' }}</p>
-                    </div>
+                    <h2 class="analysis-title">DIAGNOSTIC ANALYSIS REPORT</h2>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px;">
+                        Analyzed on {{ current_time or 'March 21, 2026' }} • System Version 4.0.2
+                    </p>
                 </div>
 
                 <div class="analysis-hero-card">
                     <div class="hero-img-wrap">
-                        <img src="{{ imagepath }}" alt="Zoom Feature">
+                        <img src="{{ imagepath }}" alt="Analysis View">
                     </div>
                 </div>
 
                 <div class="stats-container">
-                    <!-- Confidence Card -->
+                    <!-- Confidence Score -->
                     <div class="stat-card">
-                        <span class="stat-label">Model Confidence</span>
-                        <div class="confidence-wrap">
+                        <span class="stat-label">AI System Confidence</span>
+                        <div style="display: flex; justify-content: center;">
                             <svg viewBox="0 0 36 36" class="circular-chart">
                                 <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path class="circle" stroke-dasharray="{{ confidence }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <text x="18" y="20.35" class="percentage">{{ confidence }}%</text>
+                                <path class="circle" stroke-dasharray="{{ confidence or 95 }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <text x="18" y="20.35" class="percentage">{{ confidence or 0 }}%</text>
                             </svg>
                         </div>
                     </div>
 
-                    <!-- Severity Card -->
+                    <!-- Severity Indicator -->
                     <div class="stat-card">
-                        <span class="stat-label">Disease Severity</span>
-                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center">
-                            <p style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary)">
-                                {{ severity }}% 
-                            </p>
+                        <span class="stat-label">Damage Severity</span>
+                        <div style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 700;">{{ severity or 0 }}%</h3>
                             <div class="severity-bar-wrap">
-                                <div class="severity-fill" style="width: {{ severity }}%"></div>
+                                <div class="severity-fill" style="width: {{ severity or 0 }}%"></div>
                             </div>
-                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 12px; font-weight: 600; text-transform: uppercase">
-                                STATUS: 
-                                <span style="color: {% if severity >= 60 %}#ef4444{% elif severity >= 35 %}#f59e0b{% else %}var(--accent-emerald){% endif %}">
-                                    {% if severity >= 60 %}Critical{% elif severity >= 35 %}Significant{% elif severity >= 15 %}Moderate{% else %}Mild/Healthy{% endif %}
+                            <p style="margin-top: 16px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary);">
+                                Classification: <span style="color: {% if (severity or 0) >= 60 %}#ef4444{% elif (severity or 0) >= 35 %}#f59e0b{% else %}var(--accent-primary){% endif %}">
+                                    {% if (severity or 0) >= 60 %}EXTREME{% elif (severity or 0) >= 35 %}SUBSTANTIAL{% elif (severity or 0) >= 15 %}MODERATE{% else %}MINIMAL{% endif %}
                                 </span>
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Identification Box -->
+                <!-- Detailed Pathology Findings -->
                 <div class="id-details-card">
                     <div class="id-header">
-                        <p class="id-name">SPECIMEN: <span style="color:var(--accent-emerald)">{{ disease_name }}</span></p>
+                        <span class="id-section-label">IDENTIFIED DISEASE</span>
+                        <h2 class="id-name" style="color: var(--accent-primary)">{{ disease_name or 'Unclassified Condition' }}</h2>
                     </div>
                     
                     <div class="id-content">
-                        <div style="margin-bottom: 24px">
-                            <span class="id-section-label">Cause & Origin</span>
-                            <p class="id-desc">{{ prediction['cause'] or 'Common environmental fungal exposure' }}</p>
+                        <div style="margin-bottom: 32px">
+                            <span class="id-section-label">Etiology & Root Cause</span>
+                            <p class="id-desc">{{ prediction['cause'] or 'No cause identified. Requires manual inspection.' }}</p>
                         </div>
                         
-                        <div>
-                            <span class="id-section-label">Recommended Treatment</span>
-                            <p class="id-desc">{{ prediction['cure'] or 'Apply organic fungicides and improve aeration' }}</p>
+                        <div style="margin-bottom: 32px">
+                            <span class="id-section-label">Clinical Cure & Recovery</span>
+                            <p class="id-desc">{{ prediction['cure'] or 'No cure found in current dataset.' }}</p>
                         </div>
 
                         <div class="text-tamil">
-                            <span class="id-section-label" style="color: rgba(255,255,255,0.6)">தமிழில் / Tamil</span>
-                            <p><strong>{{ tamil['plant'] }}</strong> செடியில் <strong>{{ tamil['disease'] }}</strong> பாதிப்பு. <strong>காரணம்:</strong> {{ tamil['cause'] }}. <strong>தீர்வு:</strong> {{ tamil['cure'] }}</p>
+                            <span class="id-section-label" style="color: var(--text-secondary); opacity: 0.6;">TAMIL TRANSLATION / தமிழ்</span>
+                            <p style="font-weight: 600;">
+                                <strong>{{ tamil['plant'] or 'தாவரம்' }}</strong> - <strong>{{ tamil['disease'] or 'நோய்' }}</strong>
+                            </p>
+                            <p style="margin-top: 10px; font-size: 0.95rem;">
+                                <strong>காரணம்:</strong> {{ tamil['cause'] or '-' }} <br>
+                                <strong>தீர்வு:</strong> {{ tamil['cure'] or '-' }}
+                            </p>
                         </div>
                     </div>
 
                     <button class="btn-scan" onclick="window.location='/'">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fas fa-microscope"></i>
                         New Assessment
                     </button>
                 </div>
@@ -206,12 +207,13 @@
                     body: formData,
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
+                if (!response.ok) throw new Error('Server returned error status');
                 const data = await response.json();
                 if (data.success) updateUI(data);
-                else alert('Analysis failed: ' + (data.error || 'Check server logs'));
+                else throw new Error(data.error_message || 'Analysis failed');
             } catch (error) {
                 console.error(error);
-                alert('Connection error during analysis.');
+                alert('Critical Error: ' + error.message);
             } finally {
                 showLoader(false);
             }
@@ -244,26 +246,38 @@
 
         function updateUI(data) {
             const content = document.getElementById('dashboard-content');
-            if (data.is_valid === false) {
-                 content.innerHTML = `<section class="dashboard-grid" style="grid-template-columns: 1fr;"><div class="id-details-card" style="text-align:center;"><div class="vignette-icon" style="color:#ef4444"><i class="fas fa-triangle-exclamation"></i></div><h2 style="margin-bottom:16px">${data.error_message}</h2><button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-rotate-left"></i> Try Again</button></div></section>`;
+            if (!data || data.is_valid === false) {
+                 const msg = (data && data.error_message) || 'Analysis failed. Please try a clearer photo.';
+                 content.innerHTML = `<section class="dashboard-grid" style="grid-template-columns: 1fr;"><div class="id-details-card" style="text-align:center;"><div class="vignette-icon" style="background:none; -webkit-text-fill-color: #ef4444;"><i class="fas fa-circle-exclamation"></i></div><h2 style="font-family:'Outfit'; margin-bottom:16px">${msg}</h2><button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-rotate-left"></i> Re-Try Scan</button></div></section>`;
                  return;
             }
+
+            // Safe property access to prevent "undefined" error
+            const plantName = data.plant_name || 'Unknown Specimen';
+            const diseaseName = data.disease_name || 'Undetected Condition';
+            const confidence = data.confidence || 0;
+            const severity = data.severity || 0;
+            const cause = (data.prediction && data.prediction.cause) || 'No specific cause found.';
+            const cure = (data.prediction && data.prediction.cure) || 'Standard plant care recommended.';
+            const tamil = data.tamil || { plant: 'தாவரம்', disease: 'நோய்', cause: '-', cure: '-' };
+            const time = data.current_time || new Date().toLocaleString();
+
             content.innerHTML = `
                 <section class="dashboard-grid">
                     <div class="plant-preview-vertical">
-                        <img src="${data.imagepath}" alt="Specimen Scan">
+                        <img src="${data.imagepath}" alt="Specimen">
                         <div class="preview-overlay">
-                            <p style="font-size: 0.7rem; color: var(--accent-emerald); font-weight: 800; text-transform: uppercase; letter-spacing: 2px">Microscopic View</p>
-                            <p style="font-size: 1.1rem; font-weight: 700; margin-top: 4px">${data.plant_name} Leaf</p>
+                            <p style="font-size: 0.75rem; color: var(--accent-primary); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px;">Specimen Preview</p>
+                            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700;">${plantName}</h2>
                         </div>
                     </div>
 
                     <article class="analysis-panel">
                         <div class="analysis-header">
-                            <div>
-                                <h2 class="analysis-title">${data.plant_name.toUpperCase()} ANALYSIS REPORT</h2>
-                                <p class="analysis-meta">Timestamp: ${data.current_time}</p>
-                            </div>
+                            <h2 class="analysis-title">DIAGNOSTIC ANALYSIS REPORT</h2>
+                            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px;">
+                                Analyzed on ${time} • System Version 4.0.2
+                            </p>
                         </div>
 
                         <div class="analysis-hero-card">
@@ -274,25 +288,27 @@
 
                         <div class="stats-container">
                             <div class="stat-card">
-                                <span class="stat-label">Model Confidence</span>
-                                <div class="confidence-wrap">
+                                <span class="stat-label">AI System Confidence</span>
+                                <div style="display: flex; justify-content: center;">
                                     <svg viewBox="0 0 36 36" class="circular-chart">
                                         <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <path class="circle" stroke-dasharray="${data.confidence}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <text x="18" y="20.35" class="percentage">${data.confidence}%</text>
+                                        <path class="circle" stroke-dasharray="${confidence}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="20.35" class="percentage">${confidence}%</text>
                                     </svg>
                                 </div>
                             </div>
 
                             <div class="stat-card">
-                                <span class="stat-label">Disease Severity</span>
-                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center">
-                                    <p style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary)">${data.severity}%</p>
+                                <span class="stat-label">Damage Severity</span>
+                                <div style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 700;">${severity}%</h3>
                                     <div class="severity-bar-wrap">
-                                        <div class="severity-fill" style="width: ${data.severity}%"></div>
+                                        <div class="severity-fill" style="width: ${severity}%"></div>
                                     </div>
-                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 12px; font-weight: 600; text-transform: uppercase">
-                                        STATUS: <span style="color: ${data.severity >= 60 ? '#ef4444' : data.severity >= 35 ? '#f59e0b' : 'var(--accent-emerald)'}">${getSeverityLabel(data.severity)}</span>
+                                    <p style="margin-top: 16px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary);">
+                                        Classification: <span style="color: ${severity >= 60 ? '#ef4444' : severity >= 35 ? '#f59e0b' : 'var(--accent-primary)'}">
+                                            ${getSeverityClassification(severity)}
+                                        </span>
                                     </p>
                                 </div>
                             </div>
@@ -300,34 +316,39 @@
 
                         <div class="id-details-card">
                             <div class="id-header">
-                                <p class="id-name">SPECIMEN: <span style="color:var(--accent-emerald)">${data.disease_name}</span></p>
+                                <span class="id-section-label">IDENTIFIED DISEASE</span>
+                                <h2 class="id-name" style="color: var(--accent-primary)">${diseaseName}</h2>
                             </div>
                             <div class="id-content">
-                                <div style="margin-bottom: 24px">
-                                    <span class="id-section-label">Cause & Origin</span>
-                                    <p class="id-desc">${data.prediction.cause || 'Environmental exposure detected'}</p>
+                                <div style="margin-bottom: 32px">
+                                    <span class="id-section-label">Etiology & Root Cause</span>
+                                    <p class="id-desc">${cause}</p>
                                 </div>
-                                <div>
-                                    <span class="id-section-label">Recommended Treatment</span>
-                                    <p class="id-desc">${data.prediction.cure || 'General plant care optimization'}</p>
+                                <div style="margin-bottom: 32px">
+                                    <span class="id-section-label">Clinical Cure & Recovery</span>
+                                    <p class="id-desc">${cure}</p>
                                 </div>
                                 <div class="text-tamil">
-                                    <span class="id-section-label" style="color: rgba(255,255,255,0.6)">தமிழில் / Tamil</span>
-                                    <p><strong>${data.tamil.plant}</strong> செடியில் <strong>${data.tamil.disease}</strong> பாதிப்பு. <strong>காரணம்:</strong> ${data.tamil.cause}. <strong>தீர்வு:</strong> ${data.tamil.cure}</p>
+                                    <span class="id-section-label" style="color: var(--text-secondary); opacity: 0.6;">TAMIL TRANSLATION / தமிழ்</span>
+                                    <p style="font-weight: 600;"><strong>${tamil.plant}</strong> - <strong>${tamil.disease}</strong></p>
+                                    <p style="margin-top: 10px; font-size: 0.95rem;">
+                                        <strong>காரணம்:</strong> ${tamil.cause} <br>
+                                        <strong>தீர்வு:</strong> ${tamil.cure}
+                                    </p>
                                 </div>
                             </div>
-                            <button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-rotate-left"></i> New Assessment</button>
+                            <button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-microscope"></i> New Assessment</button>
                         </div>
                     </article>
                 </section>
             `;
         }
 
-        function getSeverityLabel(s) {
-            if (s >= 60) return 'Critical';
-            if (s >= 35) return 'Significant';
-            if (s >= 15) return 'Moderate';
-            return 'Mild/Healthy';
+        function getSeverityClassification(s) {
+            if (s >= 60) return 'EXTREME';
+            if (s >= 35) return 'SUBSTANTIAL';
+            if (s >= 15) return 'MODERATE';
+            return 'MINIMAL';
         }
     </script>
 </body>
