@@ -40,13 +40,16 @@
         <div class="nav-menu">
             <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash">Dashboard</a>
             <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics">Analytics</a>
-            <a href="#" class="menu-item">Archives</a>
         </div>
         <div style="display:flex; align-items:center; gap:30px;">
             <div class="search-hub">
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Search crops...">
             </div>
+            <!-- Theme Toggle -->
+            <button class="theme-switch" onclick="toggleTheme()" id="theme-btn" title="Toggle Mode">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
     </nav>
 
@@ -202,6 +205,29 @@
     </div>
 
     <script>
+        // Theme Management
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const isDark = body.getAttribute('data-theme') !== 'light';
+            
+            if (isDark) {
+                body.setAttribute('data-theme', 'light');
+                btn.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('agro-theme', 'light');
+            } else {
+                body.removeAttribute('data-theme');
+                btn.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('agro-theme', 'dark');
+            }
+        }
+
+        // Persistence check
+        if(localStorage.getItem('agro-theme') === 'light') {
+            document.body.setAttribute('data-theme', 'light');
+            document.getElementById('theme-btn').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
         // Core View Switcher
         function switchView(view) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));

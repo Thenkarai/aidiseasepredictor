@@ -10,6 +10,18 @@
     --accent-neon: #00ff9c;
     --shadow-soft: 0 4px 20px rgba(0,0,0,0.05);
     --border-radius-lg: 24px;
+    --bg-body: var(--brand-emerald);
+    --bg-main: var(--brand-grey);
+}
+
+[data-theme="light"] {
+    --brand-emerald: #059669;
+    --brand-grey: #ffffff;
+    --text-dark: #1e293b;
+    --text-muted: #475569;
+    --card-bg-white: #f8fafc;
+    --bg-body: #f1f5f9;
+    --bg-main: #ffffff;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;600;800&display=swap');
@@ -18,21 +30,35 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: var(--brand-emerald); /* Top half green */
+    background-color: var(--bg-body); /* Adaptive header color */
     color: var(--text-dark);
     min-height: 100vh;
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 .main-wrapper {
-    background-color: var(--brand-grey);
+    background-color: var(--bg-main);
     min-height: 100vh;
     border-top-left-radius: 40px;
     border-top-right-radius: 40px;
-    margin-top: 300px; /* Offset for green header area */
+    margin-top: 300px;
     padding: 40px 5% 100px;
     position: relative;
     z-index: 10;
+    transition: background-color 0.4s ease;
 }
+
+/* Theme Switch Button */
+.theme-switch {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    width: 40px; height: 40px; border-radius: 12px;
+    color: #fff; cursor: pointer; transition: 0.3s;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.theme-switch:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+
+[data-theme="light"] .theme-switch { background: rgba(0,0,0,0.05); color: var(--brand-emerald); border-color: rgba(0,0,0,0.1); }
 
 /* Floating Top Banner */
 .header-hero {
