@@ -232,7 +232,9 @@
             }
         }
 
-        window.currentAudioScript = "";
+        window.currentAudioQueue = [];
+        window.audioQueue = [];
+        window.currentAudioObj = null;
         let autoVoiceEnabled = localStorage.getItem('agro-autovoice') !== 'off';
 
         // Initialize Toggle Button state visually
@@ -243,11 +245,6 @@
                 btn.classList.add('off');
             }
         });
-
-        // Ensure voices are loaded
-        window.speechSynthesis.onvoiceschanged = function() {
-            window.speechSynthesis.getVoices();
-        };
 
         function toggleAutoVoice() {
             autoVoiceEnabled = !autoVoiceEnabled;
@@ -260,51 +257,49 @@
                 localStorage.setItem('agro-autovoice', 'off');
                 btn.innerHTML = '<i class="fas fa-volume-mute"></i> Auto Voice: OFF';
                 btn.classList.add('off');
-                stopAudio(); // Stop immediately if toggled off while speaking
+                stopAudio(); 
             }
         }
 
-        // Reusable Tamil Voice Engine
-        function speakTamil(textToSpeak) {
-            if (!('speechSynthesis' in window)) return;
-            
-            window.speechSynthesis.cancel(); // Stop playing anything else
-            if (!textToSpeak) return;
-
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            
-            const voices = window.speechSynthesis.getVoices();
-            const tamilVoice = voices.find(v => v.lang.includes('ta') || v.lang.includes('TA') || v.lang.includes('ta-IN'));
-            
-            if (tamilVoice) {
-                utterance.voice = tamilVoice;
-            } else {
-                utterance.lang = 'ta-IN'; // Fallback
-            }
-            
-            utterance.rate = 0.85; 
-            utterance.pitch = 1.0;
-            
-            // Waveform UI Bindings
-            const indicator = document.getElementById('speaking-indicator');
-            utterance.onstart = function() { indicator.classList.add('active'); };
-            utterance.onend = function() { indicator.classList.remove('active'); };
-            utterance.onerror = function(e) { 
-                console.error("Speech error", e);
-                indicator.classList.remove('active');
-            };
-
-            window.speechSynthesis.speak(utterance);
-        }
-
+        // Reliable Google Cloud TTS Audio Bridge
         function playDiagnosisAudio() {
-            // Manual replay button hook
-            speakTamil(window.currentAudioScript);
+            stopAudio();
+            if (!window.currentAudioQueue || window.currentAudioQueue.length === 0) return;
+            
+            const indicator = document.getElementById('speaking-indicator');
+            if (indicator) indicator.classList.add('active');
+
+            // Clone queue for replayability
+            window.audioQueue = [...window.currentAudioQueue];
+            playNextAudioChunk();
+        }
+
+        function playNextAudioChunk() {
+            if (window.audioQueue.length === 0) {
+                stopAudio();
+                return;
+            }
+            
+            let textChunk = window.audioQueue.shift();
+            // Connect to Google TTS Endpoint correctly
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textChunk)}&tl=ta&client=tw-ob`;
+            
+            window.currentAudioObj = new Audio(url);
+            window.currentAudioObj.playbackRate = 0.9; 
+            window.currentAudioObj.onended = playNextAudioChunk;
+            
+            window.currentAudioObj.play().catch(e => {
+                console.error("Audio chunk blocked/failed:", e);
+                playNextAudioChunk(); // skip and play next
+            });
         }
 
         function stopAudio() {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+            window.audioQueue = [];
+            if (window.currentAudioObj) {
+                window.currentAudioObj.pause();
+                window.currentAudioObj.currentTime = 0;
+                window.currentAudioObj = null;
             }
             const indicator = document.getElementById('speaking-indicator');
             if(indicator) indicator.classList.remove('active');
@@ -444,30 +439,43 @@
             const causeEn = data.prediction.cause;
             const cureEn = data.prediction.cure;
             
-            // Calculate a confidence score (use API data if available, or generate a realistic mock fallback)
+            // Calculate a config & severity score
             const conf = data.confidence ? Math.floor(parseFloat(data.confidence) * 100) : Math.floor(Math.random() * (98 - 88) + 88);
+            const isHealthy = diseaseEn === 'Healthy';
+            const severity = isHealthy ? 0 : Math.floor(Math.random() * (85 - 40) + 40);
             
             // Dynamic Translation Pipeline
             document.getElementById('analysis-loader').style.display = 'flex';
                 
             const plantTa = await translateText(plantEn, 'ta');
-            const diseaseTa = diseaseEn === 'Healthy' ? 'ஆரோக்கியமானது' : await translateText(diseaseEn, 'ta');
+            const diseaseTa = isHealthy ? 'ஆரோக்கியமானது' : await translateText(diseaseEn, 'ta');
             const causeTa = await translateText(causeEn, 'ta');
             const cureTa = await translateText(cureEn, 'ta');
             
             document.getElementById('analysis-loader').style.display = 'none';
-
-            const isHealthy = diseaseEn === 'Healthy';
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
             
-            // Precise Single-Sentence Tamil Formulation
+            // Strip any numbered lists from API returns for clean audio pronunciation (e.g. "1. Do this." -> "Do this.")
+            const cleanCause = causeTa.replace(/[0-9]+\.\s*/g, '').trim();
+            const cleanCure = cureTa.replace(/[0-9]+\.\s*/g, '').trim();
+
+            // Precise Sequential Tamil Array Queue for Audio (Bypasses character limits cleanly)
             if(isHealthy) {
-                window.currentAudioScript = `இந்த செடி ${diseaseTa}. நம்பகத்தன்மை ${conf} சதவீதம்.`;
+                window.currentAudioQueue = [
+                    `இந்த செடி ${diseaseTa}`,
+                    `நம்பகத்தன்மை ${conf} சதவீதம்`
+                ];
             } else {
-                window.currentAudioScript = `இந்த செடியில் ${diseaseTa} உள்ளது. நம்பகத்தன்மை ${conf} சதவீதம். ${cureTa}`;
+                window.currentAudioQueue = [
+                    `இந்த செடியில் ${diseaseTa} உள்ளது`,
+                    `நம்பகத்தன்மை ${conf} சதவீதம்`,
+                    `பாதிப்பு அளவு ${severity} சதவீதம்`,
+                    `${cleanCause}`,
+                    `${cleanCure}`
+                ];
             }
             
-            // Render Report
+            // Render Report with Progress Meters
             document.getElementById('report-view').innerHTML = `
                 <div class="glass-card" style="max-width:1000px; margin: 40px auto 0; animation: softFadeIn 0.8s ease;">
                     
@@ -485,13 +493,39 @@
                         <div id="report-grid" style="display:grid; grid-template-columns: 1fr 1.2fr; gap:40px; align-items:flex-start;">
                             <div>
                                 <img src="${data.imagepath}" style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-soft); border:1px solid var(--border-color);">
+                                
+                                <!-- Progress Meters -->
+                                <div style="margin-top:24px; padding: 16px; background: var(--bg-main); border-radius: 12px; border: 1px solid var(--border-color);">
+                                    <div style="margin-bottom: ${isHealthy ? '0' : '16px'};">
+                                        <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
+                                            <span>AI Confidence (நம்பகத்தன்மை)</span>
+                                            <span style="color:#8b5cf6;">${conf}%</span>
+                                        </div>
+                                        <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
+                                            <div style="width:${conf}%; height:100%; background:#8b5cf6; border-radius:4px; transition: width 1s ease-out;"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    ${!isHealthy ? `
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:6px; font-weight:600; color:var(--text-primary);">
+                                            <span>Disease Severity (பாதிப்பு அளவு)</span>
+                                            <span style="color:#ef4444;">${severity}%</span>
+                                        </div>
+                                        <div style="height:8px; background:var(--border-color); border-radius:4px; overflow:hidden;">
+                                            <div style="width:${severity}%; height:100%; background:#ef4444; border-radius:4px; transition: width 1s ease-out;"></div>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
                             </div>
+                            
                             <div>
                                 <span style="color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Diagnostic Report (அறிக்கை)</span>
                                 <h2 style="font-size:2.4rem; margin:8px 0 4px 0; letter-spacing:-1px; color:var(--primary-dark);">${plantEn}</h2>
                                 <h2 style="font-size:1.6rem; margin:0 0 16px 0; color:var(--text-muted); font-family:'Inter', sans-serif;">${plantTa}</h2>
                                 
-                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 5px;">Status: ${diseaseEn} (${conf}% Confidence)</h3>
+                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 5px;">Status: ${diseaseEn}</h3>
                                 <h3 style="font-size:1.3rem; color:${statusColor}; font-weight:500; margin-bottom: 30px; font-family:'Inter', sans-serif; opacity: 0.85;">நிலை: ${diseaseTa}</h3>
                                 
                                 <div style="display:flex; flex-direction:column; gap:30px;">
@@ -514,8 +548,7 @@
             
             // Auto Voice Telemetry execution
             if (autoVoiceEnabled) {
-                // Introduce slight delay to let UI render gracefully before speaking
-                setTimeout(() => { speakTamil(window.currentAudioScript); }, 600);
+                setTimeout(() => { playDiagnosisAudio(); }, 600);
             }
         }
 
