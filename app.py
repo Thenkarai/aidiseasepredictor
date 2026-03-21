@@ -11,8 +11,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# Diagnostic logging for Vercel
+print(f"Server starting - Python {os.sys.version}")
+print(f"Environment GEMINI_API_KEY: {'Set' if os.getenv('GEMINI_API_KEY') else 'NOT SET'}")
+
 # Configure Gemini Client
-# We won't initialize it globally to allow the app to start even if the key isn't set yet.
 client = None
 
 
@@ -30,7 +33,11 @@ CONFIDENCE_THRESHOLD = 40  # Below this = not recognized
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template('home.html')
+    try:
+        return render_template('home.html')
+    except Exception as e:
+        print(f"Home Page Error: {str(e)}")
+        return f"<h1>Internal Error</h1><p>{str(e)}</p>", 500
 
 def model_predict(image_bytes):
     """Run prediction and return disease info + confidence data using Gemini API."""
@@ -98,17 +105,18 @@ Respond strictly in the following JSON template:
         data = json.loads(response.text)
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        err_msg = traceback.format_exc()
+        print(f"Prediction Error:\n{err_msg}")
         return {
-            'prediction': None,
+            'prediction': {'cause': 'Error during AI analysis', 'cure': 'Please check back later'},
             'confidence': 0,
-            'plant_name': '',
-            'disease_name': '',
+            'plant_name': 'Error',
+            'disease_name': 'Inconclusive',
             'is_healthy': False,
             'severity': 0.0,
-            'tamil': {'plant': '', 'disease': '', 'cause': '', 'cure': ''},
+            'tamil': {'plant': 'பிழை', 'disease': 'பிழை', 'cause': 'AI பகுப்பாய்வு பிழை', 'cure': 'பின்னர் முயற்சிக்கவும்'},
             'is_valid': False,
-            'error_message': f'API Error: {str(e)}',
+            'error_message': f'API/Startup Error: {str(e)}',
             'error_tamil': 'AI மாடல் மூலம் படத்தை சரிபார்க்க முடியவில்லை.',
         }
 
