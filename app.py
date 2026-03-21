@@ -162,6 +162,22 @@ def uploadimage():
     
     result = model_predict(image_bytes)
 
+    # Handle AJAX/XHR request for performance
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'success': True,
+            'imagepath': b64_image,
+            'prediction': result['prediction'],
+            'confidence': result['confidence'],
+            'plant_name': result['plant_name'],
+            'disease_name': result['disease_name'],
+            'is_healthy': result['is_healthy'],
+            'severity': result['severity'],
+            'tamil': result['tamil'],
+            'is_valid': result['is_valid'],
+            'current_time': datetime.now().strftime("%b %d, %Y %I:%M %p")
+        })
+
     return render_template(
         'home.html',
         result=True,
