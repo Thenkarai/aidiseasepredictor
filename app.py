@@ -1,12 +1,5 @@
-import json
-import uuid
-import os
-import base64
-import io
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
-from google import genai
-from google.genai import types
 from PIL import Image
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -15,8 +8,7 @@ app = Flask(__name__)
 client = None
 
 
-# Supported plants the model can identify
-# Empty now since we use Gemini and support ALL plants 
+# Plant Doctor AI - Premium Recognition System
 SUPPORTED_PLANTS = []
 
 CONFIDENCE_THRESHOLD = 40  # Below this = not recognized
@@ -185,6 +177,7 @@ def uploadimage():
         error_message=result['error_message'],
         error_tamil=result['error_tamil'],
         supported_plants=SUPPORTED_PLANTS,
+        current_time=datetime.now().strftime("%b %d, %Y %I:%M %p")
     )
 
 
