@@ -58,25 +58,32 @@ def model_predict(image_bytes):
         }
 
     prompt = """
-You are an expert botanist and plant pathologist. Examine the provided image.
-1. Determine if the image contains a plant, leaf, crop, or flower. If the image is NOT of a plant/leaf/crop/flower (e.g., a car, person, animal, random object), return "is_plant": false and leave the rest empty.
-2. If it IS a plant, identify the specific plant name (e.g., Apple, Tomato).
-3. Identify the disease name if any, or "Healthy" if the plant appears healthy.
-4. Provide a brief 1-sentence cause of the disease (if healthy, leave empty).
-5. Provide a brief 1-sentence treatment or cure for the disease (if healthy, leave empty).
-6. Estimate the severity of the disease as a percentage from 0.0 to 100.0 (if healthy, return 0.0).
-7. State your confidence level as an integer out of 100.
-8. Provide Tamil translations for the plant name, disease name ("ஆரோக்கியமான" if healthy), cause, and cure (leave cause/cure empty if healthy).
+You are a world-class expert botanical pathologist and AI vision specialist. Your task is to perform a deep-scan of the provided image to identify plant health patterns with clinical accuracy.
 
-Respond strictly in the following JSON template:
+1. CLASSIFICATION: First, determine with 100% certainty if the primary subject is a plant, leaf, crop, or flower. 
+   - If the image is unrelated (e.g., humans, animals, vehicles, interiors, random objects), return "is_plant": false.
+   - For non-plant images, leave all other fields as empty strings, severity as 0.0, and confidence as 0.
+
+2. PATTERN ANALYSIS: If it is a plant, analyze the patterns (spots, wilting, discoloration, pests) and compare them against global pathology datasets.
+   - Identify the specific Plant Species (e.g., 'Tomato', 'Apple', 'Rice').
+   - Identify the specific Disease or 'Healthy'.
+   - Provide a precise Severity estimate (0.0 - 100.0).
+
+3. DIAGNOSTICS: 
+   - Cause: Explain the biological or environmental trigger for the pattern.
+   - Cure: Provide a professional, actionable treatment or management strategy.
+
+4. MULTILINGUAL: Provide accurate Tamil translations for the plant, disease, cause, and cure.
+
+Respond ONLY in this JSON format:
 {
   "is_plant": true/false,
   "plant_name": "...",
   "disease_name": "...",
   "cause": "...",
   "cure": "...",
-  "severity": 45.5,
-  "confidence": 95,
+  "severity": 0.0,
+  "confidence": 0,
   "tamil": {
     "plant": "...",
     "disease": "...",

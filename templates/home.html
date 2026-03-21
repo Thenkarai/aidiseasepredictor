@@ -246,19 +246,37 @@
 
         function updateUI(data) {
             const content = document.getElementById('dashboard-content');
-            if (!data || data.is_valid === false) {
-                 const msg = (data && data.error_message) || 'Analysis failed. Please try a clearer photo.';
-                 content.innerHTML = `<section class="dashboard-grid" style="grid-template-columns: 1fr;"><div class="id-details-card" style="text-align:center;"><div class="vignette-icon" style="background:none; -webkit-text-fill-color: #ef4444;"><i class="fas fa-circle-exclamation"></i></div><h2 style="font-family:'Outfit'; margin-bottom:16px">${msg}</h2><button class="btn-scan" onclick="window.location.reload()"><i class="fas fa-rotate-left"></i> Re-Try Scan</button></div></section>`;
+            
+            // Handle Non-Plant or Invalid Specimen Cases Gracefully
+            if (!data || data.is_valid === false || data.is_plant === false) {
+                 const title = data.is_plant === false ? "Non-Botanical Subject Detected" : "Diagnostic Failure";
+                 const msg = data.is_plant === false 
+                    ? "The uploaded image does not appear to be a plant, leaf, or crop. Please provide a clear botanical specimen for analysis."
+                    : (data.error_message || 'Analysis failed. Please try a clearer photo.');
+                 
+                 content.innerHTML = `
+                    <section class="dashboard-grid" style="grid-template-columns: 1fr;">
+                        <div class="id-details-card" style="text-align:center; padding: 100px 40px;">
+                            <div class="vignette-icon" style="background:none; -webkit-text-fill-color: rgba(255,255,255,0.2); font-size: 80px; margin-bottom: 40px;">
+                                <i class="fas fa-microscope-slash"></i>
+                            </div>
+                            <h2 style="font-family:'Outfit'; font-size: 2rem; margin-bottom: 20px;">${title}</h2>
+                            <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 40px; line-height: 1.6;">${msg}</p>
+                            <button class="btn-scan" onclick="window.location.reload()">
+                                <i class="fas fa-rotate-left"></i> Re-Try New Scan
+                            </button>
+                        </div>
+                    </section>`;
                  return;
             }
 
-            // Safe property access to prevent "undefined" error
+            // Safe property access for valid plant data
             const plantName = data.plant_name || 'Unknown Specimen';
             const diseaseName = data.disease_name || 'Undetected Condition';
             const confidence = data.confidence || 0;
             const severity = data.severity || 0;
-            const cause = (data.prediction && data.prediction.cause) || 'No specific cause found.';
-            const cure = (data.prediction && data.prediction.cure) || 'Standard plant care recommended.';
+            const cause = (data.prediction && data.prediction.cause) || 'No specific etiology identified.';
+            const cure = (data.prediction && data.prediction.cure) || 'Standard clinical maintenance recommended.';
             const tamil = data.tamil || { plant: 'தாவரம்', disease: 'நோய்', cause: '-', cure: '-' };
             const time = data.current_time || new Date().toLocaleString();
 
