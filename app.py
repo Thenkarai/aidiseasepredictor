@@ -37,6 +37,14 @@ if api_key:
     genai.configure(api_key=api_key)
     get_available_models()
 
+@app.route('/', methods=['GET'])
+def home():
+    try:
+        return render_template('home.html')
+    except Exception as e:
+        print(f"Home Page Error: {str(e)}")
+        return f"<h1>Internal Error</h1><p>{str(e)}</p>", 500
+
 def model_predict(image_bytes):
     """Run prediction with automated model cycling for 100% up-time."""
     try:
