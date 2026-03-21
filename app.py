@@ -63,37 +63,26 @@ def model_predict(image_bytes):
         }
 
     prompt = """
-You are acting as the Universal Botanical Diagnostic Engine. Your mission is to provide an absolute, high-precision identification and pathological report for the provided image.
+You are a helpful assistant for farmers. Your job is to identify a plant disease from an image and give simple, practical advice on how to cure it.
 
-### CORE TASK:
-Analyze the image with the depth of a world-class plant pathologist. Identify the **Plant Species** and the specific **Condition/Disease** with 100% coverage across all global crop varieties, ornamental plants, and medicinal flora.
-
-### DATA EXTRACTION:
-1. SPECIES IDENTIFICATION: Even if the leaf is highly diseased, identify the species using its cellular structure, vein patterns, and morphology.
-2. PATHOLOGICAL ANALYSIS: Identify the specific disease, pest, or deficiency or state 'Healthy'.
-3. ETIOLOGY: Describe the biological root cause (fungal, bacterial, viral, environmental).
-4. CLINICAL CURE: Provide the most effective, professional-grade treatment or recovery plan.
-
-### METRICS:
-- Severity: Percentage of tissue damage (0.0 to 100.0).
-- Confidence: Statistical certainty of this diagnosis (0 to 100).
-
-### LOCALIZATION:
-- Provide accurate Tamil equivalents for the Identification, Cause, and Cure.
+### INSTRUCTIONS:
+1. Identify the **Plant Name** and the **Disease/Problem**.
+2. Explain **What to do** (Cure) in simple, easy steps.
+3. Provide everything in both **English and Tamil**.
 
 Respond ONLY in this JSON format:
 {
-  "plant_name": "...",
-  "disease_name": "...",
-  "cause": "...",
-  "cure": "...",
+  "plant_name": "Common Plant Name",
+  "disease_name": "Common Disease Name",
+  "cause": "Simple reason for the problem",
+  "cure": "Step-by-step simple instructions for the farmer",
   "severity": 0.0,
   "confidence": 0,
   "tamil": {
-    "plant": "...",
-    "disease": "...",
-    "cause": "...",
-    "cure": "..."
+    "plant": "தாவரத்தின் பெயர்",
+    "disease": "நோயின் பெயர்",
+    "cause": "பிரச்சனைக்கான எளிய காரணம்",
+    "cure": "விவசாயிக்கான எளிய தீர்வு முறைகள்"
   }
 }
 """
