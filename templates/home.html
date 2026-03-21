@@ -158,7 +158,8 @@
                             <th>Unit ID</th>
                             <th>Health Status</th>
                             <th>Timestamp</th>
-                            <th>Action</th>
+                            <th>View</th>
+                            <th>Remove</th>
                         </tr>
                     </thead>
                     <tbody id="container-body">
@@ -192,12 +193,12 @@
             }
         }
 
+        window.currentAudioScript = "";
+
         // Ensure voices are loaded
         window.speechSynthesis.onvoiceschanged = function() {
             window.speechSynthesis.getVoices();
         };
-
-        window.currentAudioScript = "";
 
         function playDiagnosisAudio() {
             if (!('speechSynthesis' in window)) {
@@ -205,29 +206,30 @@
                 return;
             }
             
-            // Security: Must be synchronous and directly tied to the button click gesture
-            window.speechSynthesis.cancel();
-            
+            window.speechSynthesis.cancel(); // Stop playing anything else
             if (!window.currentAudioScript) return;
 
-            const utterance = new SpeechSynthesisUtterance(window.currentAudioScript);
+            // Remove any numbers or special characters that might mess up pronunciation
+            // Optional, but keeping it simple for now as native TTS handles numbers fine.
+            const textToSpeak = window.currentAudioScript;
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
             
-            // Attempt to find a Tamil or generic Indian English voice as fallback
+            // Try to explicitly set a Tamil voice if one exists
             const voices = window.speechSynthesis.getVoices();
-            const tamilVoice = voices.find(v => v.lang.includes('ta') || v.lang.includes('ta-IN'));
+            const tamilVoice = voices.find(v => v.lang.includes('ta') || v.lang.includes('TA') || v.lang.includes('ta-IN'));
             
             if (tamilVoice) {
                 utterance.voice = tamilVoice;
             } else {
-                utterance.lang = 'ta-IN'; 
+                utterance.lang = 'ta-IN'; // Fallback to language code
             }
             
-            utterance.rate = 0.85; 
+            utterance.rate = 0.85; // Slightly slower for clarity
             utterance.pitch = 1.0;
             
             utterance.onerror = function(e) {
-                console.error("Speech error framework:", e);
-                alert("Speech error: Your device may not have a Tamil voice installed. Please check OS language settings.");
+                console.error("Speech error", e);
             };
 
             window.speechSynthesis.speak(utterance);
@@ -320,7 +322,7 @@
             const tbody = document.getElementById('container-body');
             
             if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">No recent scans found. Create a new diagnostic to begin.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">No recent scans found. Create a new diagnostic to begin.</td></tr>`;
                 return;
             }
 
@@ -332,9 +334,17 @@
                     <td style="font-weight:600; color:var(--primary-dark);">UID-${1000 + idx}</td>
                     <td><span class="badge ${badgeClass}">${item.disease_name}</span></td>
                     <td style="color:var(--text-muted);">${item.current_time || 'Just now'}</td>
-                    <td><button onclick="loadFromArchive(${idx})" style="background:transparent; border:none; color:var(--secondary); font-weight:600; cursor:pointer; font-family:'Inter', sans-serif;">View Report</button></td>
+                    <td><button onclick="loadFromArchive(${idx})" style="background:transparent; border:none; color:var(--secondary); font-weight:600; cursor:pointer; font-family:'Inter', sans-serif;">View</button></td>
+                    <td><button onclick="deleteContainer(${idx})" style="background:transparent; border:none; color:#ef4444; font-size:1.1rem; cursor:pointer; padding:5px;"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
             `}).join('');
+        }
+
+        function deleteContainer(idx) {
+            let history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            history.splice(idx, 1);
+            localStorage.setItem('agro-twin-containers', JSON.stringify(history));
+            renderContainers();
         }
 
         function saveToTwin(data) {
