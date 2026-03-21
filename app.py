@@ -58,33 +58,26 @@ def model_predict(image_bytes):
         }
 
     prompt = """
-You are acting as a Senior Botanical AI Pathologist. Your objective is to perform a high-precision diagnostic scan of the provided image.
+You are acting as the Universal Botanical Diagnostic Engine. Your mission is to provide an absolute, high-precision identification and pathological report for the provided image.
 
-### PHASE 1: BOTANICAL SIGNATURE DETECTION (REASONING)
-Before classifying, scan for the following botanical markers:
-- Primary/Secondary veins or midrib patterns.
-- Leaf margin structures (serrated, lobed, smooth).
-- Chlorophyll-related pigments or necrotic tissue patterns typical of plant cells.
-- Stems, petioles, or floral reproductive organs.
+### CORE TASK:
+Analyze the image with the depth of a world-class plant pathologist. Identify the **Plant Species** and the specific **Condition/Disease** with 100% coverage across all global crop varieties, ornamental plants, and medicinal flora.
 
-**CRITICAL RULE:** Diseased plants often exhibit extreme discoloration, wilting, or structural corruption. Do NOT misclassify a highly diseased plant as "non-botanical". If ANY of the above botanical signatures are present, you MUST set "is_plant": true.
+### DATA EXTRACTION:
+1. SPECIES IDENTIFICATION: Even if the leaf is highly diseased, identify the species using its cellular structure, vein patterns, and morphology.
+2. PATHOLOGICAL ANALYSIS: Identify the specific disease, pest, or deficiency or state 'Healthy'.
+3. ETIOLOGY: Describe the biological root cause (fungal, bacterial, viral, environmental).
+4. CLINICAL CURE: Provide the most effective, professional-grade treatment or recovery plan.
 
-### PHASE 2: CLASSIFICATION
-- If the image contains zero botanical signatures (e.g., human faces, cars, tools, furniture, animals, interiors), set "is_plant": false and leave remaining fields blank.
-- Otherwise, identify the specific Plant Species and the Disease (or 'Healthy').
+### METRICS:
+- Severity: Percentage of tissue damage (0.0 to 100.0).
+- Confidence: Statistical certainty of this diagnosis (0 to 100).
 
-### PHASE 3: CLINICAL DIAGNOSTICS
-- Severity: Estimate the total leaf area affected (0.0 to 100.0).
-- Confidence: Statistical certainty of your identification.
-- Cause: Scientific etiology (fungal, bacterial, viral, or environmental).
-- Cure: Expert-level professional management and recovery strategy.
-
-### PHASE 4: LOCALIZATION
-- Provide accurate Tamil translations for the identification and treatment.
+### LOCALIZATION:
+- Provide accurate Tamil equivalents for the Identification, Cause, and Cure.
 
 Respond ONLY in this JSON format:
 {
-  "is_plant": true/false,
   "plant_name": "...",
   "disease_name": "...",
   "cause": "...",
