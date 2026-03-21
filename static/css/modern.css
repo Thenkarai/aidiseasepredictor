@@ -406,6 +406,7 @@ body::before {
     font-size: 72px;
     background: var(--accent-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 32px;
     filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.2));
