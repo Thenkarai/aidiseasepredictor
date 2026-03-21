@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgroAI — Real-Time Botanical Diagnostics & Digital Twin Dashboard.">
+    <meta name="description" content="AgroAI — Botanical Diagnostics & Digital Twin Dashboard.">
     <title>AgroAI Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -11,62 +11,51 @@
     <style>
         #analysis-loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 8, 10, 0.98); backdrop-filter: blur(30px);
-            z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
+            background: rgba(255, 255, 255, 0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
         }
-        .loading-pulse {
-            width: 150px; height: 150px; border: 3px solid var(--accent);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            animation: scanner-pulse 1.5s infinite;
-        }
-        @keyframes scanner-pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 156, 0.4); } 70% { box-shadow: 0 0 0 60px rgba(0, 255, 156, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 156, 0); } }
-        
-        .view-section { display: none; width: 100%; animation: slideFade 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-section { display: none; width: 100%; animation: fadeIn 0.5s ease; }
         .view-active { display: block; }
-        @keyframes slideFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        .spark-line { fill: none; stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 8px var(--accent)); transition: stroke 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         #camera-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 10001; display: none;
+            background: rgba(0,0,0,0.9); z-index: 10001; display: none;
             align-items: center; justify-content: center; flex-direction: column; gap: 30px;
         }
-        #camera-video { width: 90%; max-width: 800px; border-radius: 30px; border: 2px solid var(--accent); box-shadow: 0 0 40px var(--accent); }
+        #camera-video { width: 90%; max-width: 800px; border-radius: 20px; border: 4px solid #fff; }
     </style>
 </head>
 <body>
 
     <nav class="top-navbar">
         <div class="nav-brand">
-            <i class="fas fa-leaf" style="color:var(--accent)"></i>
+            <i class="fas fa-leaf"></i>
             <span>AgroAI</span>
         </div>
         <div class="nav-menu">
             <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash">Dashboard</a>
             <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics">Analytics</a>
         </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-            <button class="theme-switch" onclick="toggleTheme()" id="theme-btn" style="background:transparent; border:none; color:var(--accent); cursor:pointer;">
-                <i class="fas fa-moon"></i>
-            </button>
+        <div class="nav-right">
+             <!-- Minimal Profile -->
+             <div style="width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <i class="fas fa-user"></i>
+             </div>
         </div>
     </nav>
 
     <div id="camera-modal">
         <video id="camera-video" autoplay playsinline></video>
-        <div style="display:flex; gap:25px;">
-            <button class="scanner-btn" onclick="capturePhoto()"><i class="fas fa-camera"></i> CAPTURE SPECIMEN</button>
+        <div style="display:flex; gap:20px;">
+            <button class="scanner-btn" onclick="capturePhoto()"><i class="fas fa-camera"></i> CAPTURE</button>
             <button class="scanner-btn-alt" onclick="closeCamera()">CANCEL</button>
         </div>
         <canvas id="camera-canvas" style="display:none;"></canvas>
     </div>
 
     <div id="analysis-loader">
-        <div class="loading-pulse">
-            <i class="fas fa-brain" style="font-size:54px; color:var(--accent);"></i>
-        </div>
-        <p style="color:#fff; font-weight:800; letter-spacing:5px; text-transform:uppercase; animation: pulse 1s infinite;">Neural Network Identifying Pathology...</p>
+        <i class="fas fa-spinner fa-spin" style="font-size:48px; color:var(--accent);"></i>
+        <p style="font-weight:700;">Processing Specimen...</p>
     </div>
 
     <div class="main-wrapper">
@@ -79,70 +68,56 @@
                         <span>82%</span>
                     </div>
                     <div class="metric-item">
-                        <span><i class="fas fa-vial-circle-check"></i> Soil pH</span>
+                        <span><i class="fas fa-flask"></i> Soil pH</span>
                         <span>6.8</span>
                     </div>
                     <div class="metric-item">
-                        <span><i class="fas fa-temperature-three-quarters"></i> Core Temp</span>
+                        <span><i class="fas fa-temperature-half"></i> Core Temp</span>
                         <span>24°C</span>
                     </div>
                 </div>
 
-                <!-- NEW TOP SCANNER HUB -->
-                <div style="margin-top:40px; display:flex; gap:20px; z-index:100; position:relative;">
-                    <button class="scanner-btn" onclick="openCamera()"><i class="fas fa-camera"></i> CAMERA SCAN</button>
-                    <button class="scanner-btn-alt" onclick="document.getElementById('file-input').click()"><i class="fas fa-upload"></i> FILE SCAN</button>
-                </div>
-
                 <div class="plant-visual-hub">
                     <img src="https://github.com/Thenkarai/aidiseasepredictor/raw/main/static/images/botanical_anatomy.png" class="plant-anatomy-img" alt="Plant Twin">
-                    <div class="anatomy-label" style="top:25%; left:-120px;"><i class="fas fa-check-circle" style="color:var(--accent)"></i> BIOMETRIC STABLE</div>
-                    <div class="anatomy-label" style="bottom:45%; left:-140px;"><i class="fas fa-leaf" style="color:var(--accent)"></i> OPTIMAL GROWTH</div>
-                    <div class="anatomy-label" style="bottom:25%; right:-120px;"><i class="fas fa-shield-halved" style="color:var(--accent)"></i> SECURE UNIT</div>
                 </div>
             </div>
 
             <div class="dashboard-grid">
-                <!-- Status & Insights Grid -->
-                <div class="card-v3" style="grid-column: span 2;">
-                    <div class="card-title">Neural Engine Status</div>
-                    <div style="display:flex; align-items:center; gap:30px; margin-top:10px;">
-                        <div style="flex:1; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden;">
-                            <div style="width:85%; height:100%; background:var(--accent); box-shadow:0 0 10px var(--accent);"></div>
-                        </div>
-                        <span style="font-weight:800; color:var(--accent); font-size:0.85rem;">85% OPTIMIZED</span>
+                <div class="card-v3" style="grid-column: span 2; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h2 style="font-size:1.8rem; font-weight:700;">Diagnostic Hub</h2>
+                        <p style="color:var(--text-secondary);">Initialize camera or upload specimen.</p>
+                    </div>
+                    <div style="display:flex; gap:15px;">
+                        <button class="scanner-btn" onclick="openCamera()"><i class="fas fa-video"></i> CAMERA</button>
+                        <button class="scanner-btn-alt" onclick="document.getElementById('file-input').click()"><i class="fas fa-upload"></i> FILE</button>
                     </div>
                 </div>
 
                 <div class="card-v3">
-                    <div class="card-title">System Status</div>
-                    <div style="display:flex; flex-direction:column; gap:15px;">
-                        <div style="background:rgba(0, 255, 156, 0.05); border:1px solid var(--accent); padding:20px; border-radius:15px; color:var(--accent); font-size:0.9rem; font-weight:700; display:flex; align-items:center; gap:12px;">
-                            <i class="fas fa-microchip"></i> AI CORES ONLINE
-                        </div>
+                    <div class="card-title">AI System</div>
+                    <div style="padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; color:var(--accent); font-weight:700; display:flex; align-items:center; gap:10px;">
+                        <span style="width:10px; height:10px; border-radius:50%; background:var(--accent);"></span>
+                        SYSTEM ACTIVE
                     </div>
                 </div>
             </div>
 
             <section class="containers-section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-                    <h2 style="font-size:1.8rem; font-weight:800; color:var(--text-primary);">Active Containers</h2>
-                    <div style="padding:10px 25px; background:rgba(0, 255, 156, 0.1); border:1px solid var(--accent); color:var(--accent); border-radius:30px; font-weight:800; font-size:0.85rem; letter-spacing:1px;">MONITORING MODE : ACTIVE</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                    <h2 style="font-size:1.5rem; font-weight:700;">Active Containers</h2>
                 </div>
                 <table class="c-table">
                     <thead>
                         <tr>
                             <th>Unit UUID</th>
-                            <th>Biometric Health</th>
-                            <th>Environment</th>
-                            <th>Timestamp</th>
-                            <th>Connectivity</th>
+                            <th>Health status</th>
+                            <th>Time</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="container-body" style="color:var(--text-primary);">
-                        <!-- Dynamic Sync -->
-                    </tbody>
+                    <tbody id="container-body"></tbody>
                 </table>
             </section>
         </div>
@@ -151,141 +126,77 @@
              <div id="report-view"></div>
         </div>
 
-        <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
+        <input type="file" id="file-input" onchange="handleFileSelect(event)" hidden>
     </div>
 
     <script>
-        // Universal Camera Engine
         let stream = null;
         async function openCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 document.getElementById('camera-video').srcObject = stream;
                 document.getElementById('camera-modal').style.display = 'flex';
-            } catch (err) { alert("Camera Access Required: " + err.message); }
+            } catch (err) { alert(err.message); }
         }
-
-        function closeCamera() {
-            if (stream) { stream.getTracks().forEach(track => track.stop()); }
-            document.getElementById('camera-modal').style.display = 'none';
-        }
-
+        function closeCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); document.getElementById('camera-modal').style.display='none'; }
         async function capturePhoto() {
-            const video = document.getElementById('camera-video');
-            const canvas = document.getElementById('camera-canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
-                closeCamera();
-                handleDiagnosis(file);
-            }, 'image/jpeg', 0.95);
+            const v = document.getElementById('camera-video');
+            const c = document.getElementById('camera-canvas');
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v,0,0);
+            c.toBlob(b => handleDiagnosis(new File([b], "cap.jpg", {type:"image/jpeg"})), 'image/jpeg', 0.9);
+            closeCamera();
         }
-
-        // Neural Diagnostic Engine
-        async function handleDiagnosis(file) {
+        async function handleDiagnosis(f) {
             document.getElementById('analysis-loader').style.display = 'flex';
-            const formData = new FormData();
-            formData.append('img', file);
+            const fd = new FormData(); fd.append('img', f);
             try {
-                const response = await fetch('/upload/', { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-                const data = await response.json();
-                if (data.success) { saveToTwin(data); updateUI(data); }
-            } catch (e) { alert("Diagnostic Error: " + e); }
-            finally { document.getElementById('analysis-loader').style.display = 'none'; }
+                const r = await fetch('/upload/', { method: 'POST', body: fd, headers: {'X-Requested-With':'XMLHttpRequest'}});
+                const d = await r.json();
+                if (d.success) { saveToTwin(d); updateUI(d); }
+            } catch (e) { alert(e); }
+            finally { document.getElementById('analysis-loader').style.display='none'; }
         }
-
-        async function handleFileSelect(e) { if(e.target.files[0]) handleDiagnosis(e.target.files[0]); }
-
-        function toggleTheme() {
-            const body = document.body;
-            const btn = document.getElementById('theme-btn');
-            const isDark = body.getAttribute('data-theme') !== 'light';
-            if (isDark) {
-                body.setAttribute('data-theme', 'light');
-                btn.innerHTML = '<i class="fas fa-sun"></i>';
-                localStorage.setItem('agro-theme', 'light');
-            } else {
-                body.removeAttribute('data-theme');
-                btn.innerHTML = '<i class="fas fa-moon"></i>';
-                localStorage.setItem('agro-theme', 'dark');
-            }
-        }
-
-        if(localStorage.getItem('agro-theme') === 'light') {
-            document.body.setAttribute('data-theme', 'light');
-            document.getElementById('theme-btn').innerHTML = '<i class="fas fa-sun"></i>';
-        }
-
-        function switchView(view) {
+        function handleFileSelect(e) { if(e.target.files[0]) handleDiagnosis(e.target.files[0]); }
+        function switchView(v) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            if(view === 'dashboard') {
-                document.getElementById('view-dashboard').classList.add('view-active');
-                document.getElementById('menu-dash').classList.add('active');
-            } else if(view === 'analysis') {
-                document.getElementById('view-analysis').classList.add('view-active');
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(v === 'dashboard') { document.getElementById('view-dashboard').classList.add('view-active'); document.getElementById('menu-dash').classList.add('active'); }
+            else if(v === 'analysis') { document.getElementById('view-analysis').classList.add('view-active'); }
+            window.scrollTo({top:0, behavior:'smooth'});
         }
-
         function renderContainers() {
-            const body = document.getElementById('container-body');
-            const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
-            body.innerHTML = history.map((item, idx) => `
-                <tr style="border-bottom:1px solid var(--card-border);">
-                    <td style="padding:25px; font-family:'Courier New', monospace; font-weight:700;">#AGRO-TRX-${1000 + idx}</td>
-                    <td style="font-weight:800; color:${item.disease_name === 'Healthy' ? 'var(--accent)' : '#ef4444'}">${100 - (item.severity || 10)}% VITALITY</td>
-                    <td style="opacity:0.6;">NOMINAL</td>
-                    <td style="font-size:0.85rem; opacity:0.8;">${item.current_time || 'Just now'}</td>
-                    <td><div class="status-indicator"><span class="dot dot-green"></span> SECURE</div></td>
-                    <td><button onclick="loadFromArchive(${idx})" style="background:var(--accent); color:#020617; border:none; padding:10px 25px; border-radius:10px; font-weight:800; cursor:pointer;">LAB LOGS</button></td>
+            const h = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            document.getElementById('container-body').innerHTML = h.map((item, idx) => `
+                <tr>
+                    <td>#${1000+idx}</td>
+                    <td style="color:${item.disease_name==='Healthy'?'var(--accent)':'#ef4444'}; font-weight:700;">${item.disease_name}</td>
+                    <td style="opacity:0.6;">${item.current_time||'Now'}</td>
+                    <td>ACTIVE</td>
+                    <td><button onclick="loadFromArchive(${idx})" style="background:var(--accent); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">VIEW</button></td>
                 </tr>
             `).join('');
-            if(history.length === 0) body.innerHTML = `<tr><td colspan="6" style="padding:80px; text-align:center; opacity:0.4; letter-spacing:2px;">ZERO UNITS DETECTED. START SCAN SEQUENCE...</td></tr>`;
         }
-
-        function saveToTwin(data) {
-            let history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
-            history.unshift(data);
-            if(history.length > 20) history.pop();
-            localStorage.setItem('agro-twin-containers', JSON.stringify(history));
-            renderContainers();
-        }
-
-        function updateUI(data) {
-            const report = document.getElementById('report-view');
-            const isDiseased = data.disease_name !== 'Healthy';
-            report.innerHTML = `
-                <div style="background:var(--card-bg); backdrop-filter:blur(var(--blur)); border-radius:40px; padding:80px; box-shadow:var(--card-shadow); margin-top:80px; border:1px solid var(--card-border);">
-                    <button onclick="switchView('dashboard')" style="background:rgba(255,255,255,0.05); border:1px solid var(--card-border); color:var(--text-primary); padding:15px 30px; border-radius:15px; margin-bottom:50px; cursor:pointer; font-weight:800;">← RETURN TO DASHBOARD</button>
-                    <div style="display:grid; grid-template-columns: 450px 1fr; gap:100px;">
-                        <img src="${data.imagepath}" style="width:100%; border-radius:30px; border:2px solid var(--accent); box-shadow: var(--accent-glow);">
+        function saveToTwin(d) { let h = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]'); h.unshift(d); localStorage.setItem('agro-twin-containers', JSON.stringify(h.slice(0,20))); renderContainers(); }
+        function updateUI(d) {
+            document.getElementById('report-view').innerHTML = `
+                <div style="background:#fff; border-radius:24px; padding:40px; box-shadow:var(--card-shadow); margin-top:40px;">
+                    <button onclick="switchView('dashboard')" style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:700;">← BACK</button>
+                    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:60px; margin-top:30px;">
+                        <img src="${d.imagepath}" style="width:100%; border-radius:20px;">
                         <div>
-                            <span style="color:var(--accent); font-weight:800; letter-spacing:6px; font-size:1rem;">NEURAL CLUTCH VERIFIED</span>
-                            <h2 style="font-size:5rem; font-weight:800; color:var(--text-primary); margin:15px 0; letter-spacing:-2px;">${data.plant_name}</h2>
-                            <h3 style="font-size:2.8rem; color:${isDiseased ? '#ef4444' : 'var(--accent)'}; font-weight:300;">Status: ${data.disease_name}</h3>
-                            <div style="margin-top:70px; display:grid; grid-template-columns:1fr 1fr; gap:70px; color:var(--text-secondary);">
-                                <div><h4 style="color:var(--accent); text-transform:uppercase; font-size:1rem; margin-bottom:20px; font-weight:800;">Biomedical Cause</h4><p style="font-size:1.2rem; line-height:1.9;">${data.prediction.cause}</p></div>
-                                <div><h4 style="color:var(--accent); text-transform:uppercase; font-size:1rem; margin-bottom:20px; font-weight:800;">Neural Remediation</h4><p style="font-size:1.2rem; line-height:1.9;">${data.prediction.cure}</p></div>
-                            </div>
-                            <div style="background:rgba(0, 255, 156, 0.03); padding:50px; border-radius:30px; margin-top:70px; border:1px dashed var(--accent);">
-                                <h4 style="color:var(--accent); margin-bottom:20px; letter-spacing:2px;">குறுந்தகவல் (TAMIL LOG)</h4>
-                                <p style="font-weight:800; font-size:1.4rem;">${data.tamil.plant} - ${data.tamil.disease}</p>
-                                <p style="margin-top:25px; line-height:1.8; font-size:1.1rem;">${data.tamil.cure}</p>
+                            <h2 style="font-size:2.5rem;">${d.plant_name}</h2>
+                            <h3 style="color:${d.disease_name==='Healthy'?'var(--accent)':'#ef4444'};">${d.disease_name}</h3>
+                            <div style="margin-top:30px;">
+                                <h4 style="color:var(--accent);">Cause</h4><p>${d.prediction.cause}</p>
+                                <h4 style="color:var(--accent); margin-top:20px;">Cure</h4><p>${d.prediction.cure}</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
             switchView('analysis');
         }
-
-        function loadFromArchive(idx) {
-            const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
-            updateUI(history[idx]);
-        }
+        function loadFromArchive(i) { updateUI(JSON.parse(localStorage.getItem('agro-twin-containers'))[i]); }
         renderContainers();
     </script>
 </body>
