@@ -63,7 +63,7 @@
             <span>AgroAI</span>
         </div>
         <div class="nav-menu">
-            <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash" data-i18n="nav_dashboard">Dashboard</a>
+            <a href="javascript:void(0)" onclick="switchView('dashboard'); stopAudio();" class="menu-item active" id="menu-dash" data-i18n="nav_dashboard">Dashboard</a>
             <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics" data-i18n="nav_analytics">Analytics</a>
         </div>
         
@@ -90,7 +90,7 @@
 
     <div id="analysis-loader">
         <div class="loading-ring"></div>
-        <p style="font-weight:500; font-size:1.1rem; color:var(--primary-dark);" data-i18n="loader_analyzing">Analyzing specimen...</p>
+        <p id="loader-text" style="font-weight:500; font-size:1.1rem; color:var(--primary-dark);" data-i18n="loader_analyzing">Analyzing specimen...</p>
     </div>
 
     <!-- Main Application -->
@@ -208,7 +208,8 @@
                 "table_title": "Recent Scans", "th_unit": "Unit ID", "th_health": "Health Status", "th_time": "Timestamp", "th_action": "Action",
                 "empty_table": "No recent scans found. Create a new diagnostic to begin.", "just_now": "Just now", "view_report": "View Report",
                 "btn_back": "Back", "btn_pdf": "Download PDF", "report_label": "Diagnostic Report", "status_label": "Status:",
-                "rep_cond": "Botanical Condition", "rep_treat": "Suggested Agricultural Treatment"
+                "rep_cond": "Botanical Condition", "rep_treat": "Suggested Agricultural Treatment",
+                "btn_listen": "Listen", "loader_translating": "Translating report..."
             },
             "ta": {
                 "nav_dashboard": "கட்டுப்பாட்டு அறை", "nav_analytics": "பகுப்பாய்வு",
@@ -223,7 +224,8 @@
                 "table_title": "சமீபத்திய ஸ்கேன்கள்", "th_unit": "பயன்பாடு ID", "th_health": "சுகாதார நிலை", "th_time": "நேரம்", "th_action": "செயல்",
                 "empty_table": "ஸ்கேன்கள் இல்லை. புதிய பரிசோதனையைத் தொடங்கவும்.", "just_now": "இப்போது", "view_report": "அறிக்கை",
                 "btn_back": "திரும்பு", "btn_pdf": "PDF பதிவிறக்கு", "report_label": "கண்டறிதல் அறிக்கை", "status_label": "நிலை:",
-                "rep_cond": "உயிரியல் நிலை", "rep_treat": "பரிந்துரைக்கப்பட்ட விவசாய சிகிச்சை"
+                "rep_cond": "உயிரியல் நிலை", "rep_treat": "பரிந்துரைக்கப்பட்ட விவசாய சிகிச்சை",
+                "btn_listen": "அறிக்கை கேட்க", "loader_translating": "மொழிபெயர்ப்பு செய்யப்படுகிறது..."
             }
         };
 
@@ -244,15 +246,44 @@
             localStorage.setItem('agro-lang', currentLang);
             applyTranslations();
             renderContainers(); // Re-render table to catch dynamic strings
+            
+            // Re-render analysis if it's currently open
+            if(document.getElementById('view-analysis').classList.contains('view-active') && lastData) {
+                updateUI(lastData);
+            }
         }
 
-        // Apply immediately
         document.addEventListener("DOMContentLoaded", applyTranslations);
 
-        // --- END I18N ---
+        // --- ASYNC TRANSLATION & AUDIO ENGINE ---
+        async function translateText(text, targetLang) {
+            if (!text) return "";
+            if (targetLang === 'en') return text;
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                return data[0].map(item => item[0]).join('');
+            } catch (e) {
+                console.error("Translation error", e);
+                return text; // Fallback to English
+            }
+        }
 
+        function playDiagnosisAudio(encText, lang) {
+            window.speechSynthesis.cancel(); // Stop playing anything else
+            const text = decodeURIComponent(encText);
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang === 'ta' ? 'ta-IN' : 'en-US';
+            utterance.rate = 0.85; // Slightly slower for clarity
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
 
-        // Theme Management (Dark/Light Mode)
+        function stopAudio() {
+            window.speechSynthesis.cancel();
+        }
+
+        // --- THEME ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeToggleBtn');
@@ -300,19 +331,22 @@
 
         // Diagnostic Engine
         async function handleDiagnosis(file) {
+            document.getElementById('loader-text').innerText = dictionary[currentLang]['loader_analyzing'];
             document.getElementById('analysis-loader').style.display = 'flex';
             const formData = new FormData(); formData.append('img', file);
             try {
                 const response = await fetch('/upload/', { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}});
                 const data = await response.json();
-                if (data.success) { saveToTwin(data); updateUI(data); }
+                if (data.success) {
+                    saveToTwin(data);
+                    await updateUI(data); 
+                }
             } catch (e) { alert("Analysis failed: " + e); }
             finally { document.getElementById('analysis-loader').style.display = 'none'; }
         }
 
         function handleFileSelect(event) { if(event.target.files[0]) handleDiagnosis(event.target.files[0]); }
 
-        // Navigation
         function switchView(viewName) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -326,7 +360,6 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // Data Storage & Rendering
         function renderContainers() {
             const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
             const tbody = document.getElementById('container-body');
@@ -356,32 +389,59 @@
             renderContainers();
         }
 
-        // PDF Export Engine
         function downloadPDF() {
             const element = document.getElementById('printable-report');
             const opt = {
                 margin:       [10, 10, 10, 10], 
-                filename:     `AgroAI_Diagnostic_Report_${new Date().getTime()}.pdf`,
+                filename:     `AgroAI_Diagnostic_Report.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, backgroundColor: document.body.getAttribute('data-theme') === 'dark' ? '#1E1E1E' : '#ffffff' },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            
             element.classList.add('pdf-mode');
             html2pdf().set(opt).from(element).save().then(() => element.classList.remove('pdf-mode'));
         }
 
-        // Result View UI
-        function updateUI(data) {
+        // Result View UI - MADE ASYNC FOR TRANSLATION
+        let lastData = null;
+        async function updateUI(data) {
+            lastData = data; // store for language toggling
+            
+            let plantName = data.plant_name;
+            let diseaseName = data.disease_name;
+            let causeText = data.prediction.cause;
+            let cureText = data.prediction.cure;
+            
+            // Dynamic Translation Pipeline
+            if (currentLang === 'ta') {
+                document.getElementById('loader-text').innerText = dictionary['ta']['loader_translating'];
+                document.getElementById('analysis-loader').style.display = 'flex';
+                
+                plantName = await translateText(plantName, 'ta');
+                diseaseName = diseaseName === 'Healthy' ? 'ஆரோக்கியமான' : await translateText(diseaseName, 'ta');
+                causeText = await translateText(causeText, 'ta');
+                cureText = await translateText(cureText, 'ta');
+                
+                document.getElementById('analysis-loader').style.display = 'none';
+            }
+
             const isHealthy = data.disease_name === 'Healthy';
             const statusColor = isHealthy ? '#10b981' : '#ef4444';
+            
+            // Construct sentence for Audio Engine
+            const audioScript = `${plantName}. நிலை: ${diseaseName}. காரணம்: ${causeText}. தீர்வு: ${cureText}.`;
             
             document.getElementById('report-view').innerHTML = `
                 <div class="glass-card" style="max-width:1000px; margin: 40px auto 0;">
                     
-                    <div class="report-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; gap: 16px;">
-                        <button onclick="switchView('dashboard')" class="btn-secondary" style="padding:10px 24px;"><i class="fas fa-arrow-left"></i> <span data-i18n="btn_back">${dictionary[currentLang]['btn_back']}</span></button>
-                        <button onclick="downloadPDF()" class="btn-primary" style="padding:10px 24px; background:#2563eb;"><i class="fas fa-file-pdf"></i> <span data-i18n="btn_pdf">${dictionary[currentLang]['btn_pdf']}</span></button>
+                    <div class="report-actions" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:32px; gap: 16px;">
+                        <div>
+                            <button onclick="switchView('dashboard'); stopAudio();" class="btn-secondary" style="padding:10px 24px;"><i class="fas fa-arrow-left"></i> <span data-i18n="btn_back">${dictionary[currentLang]['btn_back']}</span></button>
+                        </div>
+                        <div style="display:flex; gap:16px;">
+                            <button onclick="playDiagnosisAudio('${encodeURIComponent(audioScript)}', '${currentLang}')" class="btn-primary" style="padding:10px 24px; background:#8b5cf6;"><i class="fas fa-volume-up"></i> <span>${dictionary[currentLang]['btn_listen']}</span></button>
+                            <button onclick="downloadPDF()" class="btn-primary" style="padding:10px 24px; background:#2563eb;"><i class="fas fa-file-pdf"></i> <span data-i18n="btn_pdf">${dictionary[currentLang]['btn_pdf']}</span></button>
+                        </div>
                     </div>
                     
                     <div id="printable-report" style="padding:20px; border-radius:12px;">
@@ -391,17 +451,17 @@
                             </div>
                             <div>
                                 <span style="color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;" data-i18n="report_label">${dictionary[currentLang]['report_label']}</span>
-                                <h2 style="font-size:2.8rem; margin:8px 0; letter-spacing:-1px; color:var(--primary-dark);">${data.plant_name}</h2>
-                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 30px;"><span data-i18n="status_label">${dictionary[currentLang]['status_label']}</span> ${data.disease_name}</h3>
+                                <h2 style="font-size:2.8rem; margin:8px 0; letter-spacing:-1px; color:var(--primary-dark);">${plantName}</h2>
+                                <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 30px;"><span data-i18n="status_label">${dictionary[currentLang]['status_label']}</span> ${diseaseName}</h3>
                                 
                                 <div style="display:flex; flex-direction:column; gap:24px;">
                                     <div>
                                         <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;" data-i18n="rep_cond">${dictionary[currentLang]['rep_cond']}</h4>
-                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${data.prediction.cause}</p>
+                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${causeText}</p>
                                     </div>
                                     <div>
                                         <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;" data-i18n="rep_treat">${dictionary[currentLang]['rep_treat']}</h4>
-                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${data.prediction.cure}</p>
+                                        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-primary);">${cureText}</p>
                                     </div>
                                 </div>
                             </div>
@@ -409,6 +469,10 @@
                     </div>
                 </div>`;
             switchView('analytics');
+        }
+
+        function loadFromArchive(idx) {
+            updateUI(JSON.parse(localStorage.getItem('agro-twin-containers'))[idx]);
         }
 
         // Init
