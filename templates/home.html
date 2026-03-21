@@ -3,279 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgroAI — Ultra-Premium Plant Disease Detection and Growth Analytics.">
-    <title>AgroAI — Plant Disease Detection</title>
+    <meta name="description" content="AgroAI — Ultra-Premium Digital Twin Plant Monitoring Dashboard.">
+    <title>AgroAI Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
     <style>
         #analysis-loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(20px);
+            background: rgba(6, 78, 59, 0.98); backdrop-filter: blur(20px);
             z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
         }
-        .neon-spinner {
-            width: 100px; height: 100px; border: 4px solid rgba(0, 255, 156, 0.1);
-            border-top: 4px solid var(--accent-neon); border-radius: 50%;
-            animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            box-shadow: 0 0 30px var(--accent-glow);
+        .loading-pulse {
+            width: 120px; height: 120px; background: rgba(0, 255, 156, 0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            animation: pulse-bg 2s infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pulse-text { 
-            font-size: 1.5rem; font-weight: 600; color: var(--accent-neon); 
-            animation: pulse-glow 2s infinite; letter-spacing: 2px;
-        }
-        @keyframes pulse-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; text-shadow: 0 0 20px var(--accent-neon); } }
+        @keyframes pulse-bg { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.2); opacity: 0.6; } }
+        
+        /* View Management */
+        .view-section { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+        .view-active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Growth Analytics Chart Component */
-        .chart-svg { width: 100%; height: 180px; filter: drop-shadow(0 0 10px var(--accent-glow)); }
-        .chart-path { 
-            fill: none; stroke: var(--accent-neon); stroke-width: 3; 
-            stroke-dasharray: 1000; stroke-dashoffset: 1000;
-            animation: drawLine 3s ease-out forwards;
-        }
-        @keyframes drawLine { to { stroke-dashoffset: 0; } }
-
-        /* Drag & Drop Effects */
-        .upload-hub.drag-over { border-color: var(--accent-neon); background: rgba(0, 255, 156, 0.1); }
+        /* SVG Graph Components */
+        .spark-line { fill: none; stroke: var(--accent-neon); stroke-width: 2; filter: drop-shadow(0 0 5px var(--accent-neon)); }
     </style>
 </head>
 <body>
-    <div id="particles-js"></div>
 
-    <aside class="history-sidebar glass-card">
-        <div class="logo-ai"><i class="fas fa-microchip"></i></div>
-        <div id="history-grid" style="display:flex; flex-direction:column; gap:20px; align-items:center;">
-            <!-- History Nodes -->
+    <nav class="top-navbar">
+        <div class="nav-brand">
+            <i class="fas fa-leaf" style="color:var(--accent-neon)"></i>
+            <span>greenish</span>
         </div>
-    </aside>
-
-    <nav class="top-nav glass-card" style="margin: 20px 5%; border-radius: 20px; width: 90%;">
-        <div class="logo-container">
-            <i class="fas fa-leaf logo-ai"></i>
-            <span class="brand-title">AGRO<span style="color:var(--accent-neon)">AI</span></span>
+        <div class="nav-menu">
+            <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash">Dashboard</a>
+            <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics">Analytics</a>
+            <a href="javascript:void(0)" onclick="switchView('containers')" class="menu-item" id="menu-nodes">Containers</a>
+            <a href="#" class="menu-item">Notifications</a>
         </div>
-        <div class="nav-links">
-            <a href="/" class="nav-link">Home</a>
-            <a href="#" class="nav-link">Analytics</a>
-            <a href="#" class="nav-link">Archives</a>
-            <a href="#" class="nav-link">Contact</a>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-             <div style="width:40px; height:40px; background:var(--accent-glow); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--accent-neon); cursor:pointer;">
-                <i class="fas fa-user-shield"></i>
-             </div>
+        <div style="display:flex; align-items:center; gap:30px;">
+            <div class="search-hub">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search crops...">
+            </div>
+            <div style="width:40px; height:40px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; color:var(--brand-emerald)">
+                <i class="fas fa-user"></i>
+            </div>
         </div>
     </nav>
 
-    <main class="main-layout">
-        <div id="analysis-loader">
-            <div class="neon-spinner"></div>
-            <p class="pulse-text">NEURAL NETWORK ANALYZING SPECIMEN...</p>
+    <div id="analysis-loader">
+        <div class="loading-pulse">
+            <i class="fas fa-microscope" style="font-size:40px; color:var(--accent-neon);"></i>
         </div>
+        <p style="color:#fff; font-weight:600; letter-spacing:2px; text-transform:uppercase;">Decoding Botanical Signature...</p>
+    </div>
 
-        <div id="dashboard-content" style="width:100%; max-width:1400px;">
-        {% if not result %}
-        <div class="dashboard-hero">
-            <section>
-                <h1 style="font-size:4rem; font-weight:800; line-height:1.1; margin-bottom:20px;">Precision <br><span style="color:var(--accent-neon)">Plant Pathology</span></h1>
-                <p style="color:var(--text-secondary); font-size:1.2rem; max-width:600px; margin-bottom:40px; line-height:1.6;">AgroAI leverages deep learning to detect botanical diseases with 99.8% accuracy. Real-time growth analytics and environment monitoring included.</p>
-                
-                <div class="metrics-grid">
-                    <div class="metric-widget glass-card">
-                        <div class="metric-header"><i class="fas fa-tint"></i> Water Level</div>
-                        <div class="metric-value">85%</div>
-                        <div style="width:100%; height:4px; background:rgba(255,255,255,0.05); margin-top:10px; border-radius:2px;">
-                            <div style="width:85%; height:100%; background:var(--accent-neon); border-radius:2px; box-shadow:0 0 10px var(--accent-neon);"></div>
-                        </div>
+    <div class="main-wrapper">
+        <!-- Dashboard Overview View -->
+        <div id="view-dashboard" class="view-section view-active">
+            <div class="header-hero">
+                <h1 class="overview-title">Overview</h1>
+                <div class="top-metrics">
+                    <div class="metric-item">
+                        <span><i class="fas fa-tint"></i> Water</span>
+                        <span>85%</span>
                     </div>
-                    <div class="metric-widget glass-card">
-                        <div class="metric-header"><i class="fas fa-vial"></i> pH Balance</div>
-                        <div class="metric-value">6.5 <span style="font-size:1rem; opacity:0.5;">pH</span></div>
-                        <div style="width:100%; height:4px; background:rgba(255,255,255,0.05); margin-top:10px; border-radius:2px;">
-                            <div style="width:65%; height:100%; background:var(--accent-neon); border-radius:2px;"></div>
-                        </div>
+                    <div class="metric-item">
+                        <span><i class="fas fa-vial"></i> pH Level</span>
+                        <span>6.5 pH</span>
                     </div>
-                    <div class="metric-widget glass-card">
-                        <div class="metric-header"><i class="fas fa-thermometer-half"></i> Temp (°C)</div>
-                        <div class="metric-value">24° <span style="font-size:1rem; opacity:0.5;">C</span></div>
-                        <div style="width:100%; height:4px; background:rgba(255,255,255,0.05); margin-top:10px; border-radius:2px;">
-                            <div style="width:48%; height:100%; background:var(--accent-neon); border-radius:2px;"></div>
-                        </div>
+                    <div class="metric-item">
+                        <span><i class="fas fa-thermometer-half"></i> Temperature (°C)</span>
+                        <span>24°C</span>
                     </div>
                 </div>
-            </section>
 
-            <section class="analytics-card glass-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="font-size:1.2rem; font-weight:600;">Growth Analytics</h3>
-                    <span style="color:var(--accent-neon); font-size:0.8rem; font-weight:700;">12 cm/day ↑</span>
+                <div class="plant-visual-hub">
+                    <img src="https://github.com/Thenkarai/aidiseasepredictor/raw/main/static/images/botanical_anatomy.png" class="plant-anatomy-img" alt="Plant Twin">
+                    <div class="anatomy-label label-health">Health</div>
+                    <div class="anatomy-label label-ph">pH Level</div>
+                    <div class="anatomy-label label-water" style="right:-40px;">Water</div>
                 </div>
-                <div class="chart-placeholder">
-                    <svg class="chart-svg" viewBox="0 0 400 180">
-                        <path class="chart-path" d="M0,150 Q100,140 200,80 T400,30" />
-                        <circle cx="200" cy="80" r="6" fill="#00ff9c" />
-                    </svg>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-top:20px; color:var(--text-secondary); font-size:0.75rem;">
-                    <span>30 DAY SCAN</span>
-                    <span>CURRENT CYCLE</span>
-                    <span>OPTIMAL PEAK</span>
-                </div>
-            </section>
-        </div>
+            </div>
 
-        <div class="upload-hub glass-card" id="drop-zone" onclick="document.getElementById('file-input').click()" style="margin-top:80px;">
-            <div style="font-size:60px; color:var(--accent-neon); margin-bottom:30px; opacity:0.6;"><i class="fas fa-atom"></i></div>
-            <h2 style="font-size:2rem; margin-bottom:12px;">Initialize Neural Scan</h2>
-            <p style="color:var(--text-secondary); margin-bottom:40px;">Drag & Drop botanical specimen or click to browse database</p>
-            <button class="glow-btn">START ANALYSIS ENGINE</button>
-            <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
-        </div>
-        {% else %}
-        <div id="report-view">
-            <h2 class="neon-title">Diagnostic <span style="font-weight:300; opacity:0.4;">Result</span></h2>
-            
-            <div class="result-layout">
-                <div class="specimen-sidebar">
-                    <div class="specimen-frame glass-card">
-                        <img src="{{ imagepath }}" alt="Specimen">
-                        <div class="status-badge">{{ 'DISEASED' if disease_name != 'Healthy' else 'HEALTHY' }}</div>
+            <div class="dashboard-grid">
+                <!-- Large Analytics Card -->
+                <div class="card-v3 card-growth">
+                    <div class="card-title">
+                        <span>Growth analytics</span>
+                        <span class="card-sub">Details</span>
                     </div>
-                    
-                    <div class="glass-card" style="padding:30px; margin-top:30px;">
-                        <div class="metric-header" style="margin-bottom:20px;"><i class="fas fa-brain"></i> Neural Confidence</div>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                            <span style="font-size:3rem; font-weight:800; color:var(--accent-neon);">{{ confidence or 95 }}<span style="font-size:1.5rem;">%</span></span>
-                            <span style="color:var(--text-secondary); margin-bottom:10px;">PROBABILITY SCALE</span>
+                    <div style="margin-top:20px;">
+                        <span style="background:rgba(255,255,255,0.9); color:var(--text-dark); padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700;">12 cm/day</span>
+                    </div>
+                    <div style="height:120px; margin-top:30px;">
+                        <svg width="100%" height="100%" viewBox="0 0 300 100">
+                             <path class="spark-line" d="M0,80 Q50,70 100,50 T200,60 T300,20" />
+                             <circle cx="200" cy="60" r="4" fill="#00ff9c" />
+                        </svg>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:20px; font-size:0.65rem; opacity:0.6;">
+                        <span>30 day</span>
+                        <span>30 day</span>
+                        <span>30 day</span>
+                    </div>
+                </div>
+
+                <!-- Alerts Card -->
+                <div class="card-v3 card-alerts">
+                    <div class="card-title">
+                        <span>Critical Alerts</span>
+                        <span class="card-sub">View all</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:15px;">
+                        <div style="display:flex; align-items:center; gap:12px; background:#fff; padding:12px; border-radius:15px;">
+                            <i class="fas fa-tint" style="color:var(--brand-yellow)"></i>
+                            <span style="font-weight:600; font-size:0.85rem;">Optimal growth</span>
+                            <i class="fas fa-arrow-down" style="margin-left:auto; opacity:0.3;"></i>
                         </div>
-                        <div style="width:100%; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; margin-top:20px; overflow:hidden;">
-                            <div style="width:{{ confidence or 95 }}%; height:100%; background:var(--accent-neon); box-shadow:0 0 20px var(--accent-neon);"></div>
+                        <div style="display:flex; align-items:center; gap:12px; background:#fff; padding:12px; border-radius:15px;">
+                            <i class="fas fa-water" style="color:var(--brand-yellow)"></i>
+                            <span style="font-weight:600; font-size:0.85rem;">Low water level</span>
+                            <i class="fas fa-arrow-down" style="margin-left:auto; opacity:0.3;"></i>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px; background:#fff; padding:12px; border-radius:15px;">
+                            <i class="fas fa-vial" style="color:var(--brand-yellow)"></i>
+                            <span style="font-weight:600; font-size:0.85rem;">pH above normal</span>
+                            <i class="fas fa-arrow-down" style="margin-left:auto; opacity:0.3;"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="details-panel glass-card" style="padding:50px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:50px;">
-                        <div>
-                            <span style="color:var(--accent-neon); font-weight:700; font-size:0.9rem; text-transform:uppercase; letter-spacing:3px;">Identification Complete</span>
-                            <h2 style="font-size:3.5rem; font-weight:800; margin:10px 0;">{{ plant_name }}</h2>
-                            <h3 style="font-size:1.8rem; color:var(--text-secondary); font-weight:400;">Anomaly: <span style="color:#fff;">{{ disease_name }}</span></h3>
-                        </div>
-                        <div style="text-align:right;">
-                            <p style="color:var(--text-secondary); font-size:0.8rem; margin-bottom:10px;">SECURITY KEY</p>
-                            <p style="font-weight:700; letter-spacing:2px;">#AGRO-{{ current_time or '2026' }}</p>
-                        </div>
+                <!-- Activity Overview Card -->
+                <div class="card-v3">
+                    <div class="card-title">
+                        <span style="color:var(--text-dark)">Activity Overview</span>
                     </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
-                        <div>
-                            <h4 style="color:var(--accent-neon); margin-bottom:20px; text-transform:uppercase; font-size:0.85rem;"><i class="fas fa-microscope"></i> Observations</h4>
-                            <p style="color:var(--text-secondary); line-height:1.8; font-size:1.1rem;">{{ prediction['cause'] }}</p>
-                        </div>
-                        <div>
-                            <h4 style="color:var(--accent-neon); margin-bottom:20px; text-transform:uppercase; font-size:0.85rem;"><i class="fas fa-shield-virus"></i> Bio-Hack Remediation</h4>
-                            <p style="color:var(--text-secondary); line-height:1.8; font-size:1.1rem;">{{ prediction['cure'] }}</p>
-                        </div>
+                    <div style="display:grid; grid-template-columns: repeat(7, 1fr); text-align:center; font-size:0.7rem; color:var(--text-muted); margin-bottom:15px;">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                     </div>
-
-                    <div style="background:rgba(0, 255, 156, 0.05); padding:30px; border-radius:20px; margin-top:50px; border:1px dashed var(--accent-glow);">
-                        <p style="font-weight:700; font-size:1.4rem; color:var(--accent-neon); margin-bottom:15px;">{{ tamil['plant'] }} - {{ tamil['disease'] }}</p>
-                        <p style="line-height:1.8; color:var(--text-secondary);">
-                            <strong>முக்கிய காரணம்:</strong> {{ tamil['cause'] }} <br>
-                            <strong>தீர்வு முறை:</strong> {{ tamil['cure'] }}
-                        </p>
+                    <div style="height:80px; position:relative;">
+                        <svg width="100%" height="100%" viewBox="0 0 200 80">
+                            <path fill="none" stroke="#e2e8f0" stroke-width="1" d="M0,40 H200 M0,20 H200 M0,60 H200" />
+                            <path fill="none" stroke="var(--brand-emerald)" stroke-width="2" d="M0,60 Q50,40 100,50 T200,30" />
+                        </svg>
                     </div>
-
-                    <div style="margin-top:50px; display:flex; gap:24px;">
-                        <button class="glow-btn" style="flex:1;" onclick="window.location='/'"><i class="fas fa-undo"></i> RE-SYNC ENGINE</button>
-                        <button class="glow-btn" onclick="downloadPDF()" style="background:transparent; border:1px solid var(--accent-neon); color:var(--accent-neon); box-shadow:none;">
-                            <i class="fas fa-file-code"></i> EXPORT LOGS
-                        </button>
+                    <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.75rem; font-weight:500;">Watering System</span>
+                            <span style="background:var(--brand-emerald); color:#fff; padding:4px 10px; border-radius:8px; font-size:0.6rem;">Details</span>
+                        </div>
+                        <div style="font-size:0.65rem; color:var(--text-muted);">10:00 - 11:00</div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% endif %}
-        </div>
-    </main>
 
-    <footer style="margin-top:100px; padding:50px 0; text-align:center; border-top:1px solid var(--glass-border);">
-        <p style="color:var(--text-secondary); font-size:0.9rem; letter-spacing:2px; text-transform:uppercase;">Powered by Integrated AI Clusters | Built for Autonomous Smart Farming</p>
-    </footer>
+            <!-- Containers Table -->
+            <section class="containers-section">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="font-size:1.4rem; font-weight:700;">Active Containers</h2>
+                    <span style="color:var(--brand-emerald); font-size:0.9rem; font-weight:600; cursor:pointer;" onclick="document.getElementById('file-input').click()">Explore all / Add Scan</span>
+                </div>
+                <table class="c-table">
+                    <thead>
+                        <tr>
+                            <th>Health</th>
+                            <th>Wealth</th>
+                            <th>Water</th>
+                            <th>pH Level</th>
+                            <th>Nutrients</th>
+                            <th>Temp</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-body">
+                        <!-- Dynamic Rows -->
+                        <tr>
+                            <td><div class="status-indicator"><span class="dot dot-green"></span> Ns1</div></td>
+                            <td><i class="fas fa-heart" style="color:#ef4444; font-size:0.8rem;"></i> 80%</td>
+                            <td><i class="fas fa-tint" style="color:var(--brand-emerald); font-size:0.8rem;"></i> 65%</td>
+                            <td>6.5</td>
+                            <td><i class="fas fa-leaf" style="color:var(--brand-emerald); font-size:0.8rem;"></i> 85%</td>
+                            <td>24°C</td>
+                            <td><button style="background:var(--brand-emerald); color:#fff; border:none; padding:6px 15px; border-radius:8px; font-size:0.75rem;">Details</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Specimen Analysis View (Details) -->
+        <div id="view-analysis" class="view-section">
+             <div id="report-view">
+                <!-- Result mapping logic (Phase 2/3 style results) -->
+             </div>
+        </div>
+
+        <input type="file" name="img" id="file-input" onchange="handleFileSelect(event)" hidden>
+    </div>
 
     <script>
-        // Particle Background Configuration
-        particlesJS("particles-js", {
-            "particles": {
-                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": "#00ff9c" },
-                "shape": { "type": "circle" },
-                "opacity": { "value": 0.2, "random": false },
-                "size": { "value": 2, "random": true },
-                "line_linked": { "enable": true, "distance": 150, "color": "#00ff9c", "opacity": 0.1, "width": 1 },
-                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
-                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
-            },
-            "retina_detect": true
-        });
-
-        // Drag & Drop Implementation
-        const dropZone = document.getElementById('drop-zone');
-        if(dropZone) {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-                dropZone.addEventListener(event, e => { e.preventDefault(); e.stopPropagation(); });
-            });
-            dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
-            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-            dropZone.addEventListener('drop', e => {
-                dropZone.classList.remove('drag-over');
-                handleFileSelect({ target: { files: e.dataTransfer.files } });
-            });
+        // Core View Switcher
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            
+            if(view === 'dashboard') {
+                document.getElementById('view-dashboard').classList.add('view-active');
+                document.getElementById('menu-dash').classList.add('active');
+            } else if(view === 'analysis') {
+                document.getElementById('view-analysis').classList.add('view-active');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // History Persistence
-        function saveToHistory(data) {
-            let history = JSON.parse(localStorage.getItem('agro-archives') || '[]');
-            history.unshift({ ...data, timestamp: new Date().toLocaleTimeString() });
-            if(history.length > 10) history.pop();
-            localStorage.setItem('agro-archives', JSON.stringify(history));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const grid = document.getElementById('history-grid');
-            const history = JSON.parse(localStorage.getItem('agro-archives') || '[]');
-            grid.innerHTML = history.map((item, index) => `
-                <div class="history-node" onclick="loadFromHistory(${index})" title="${item.plant_name}">
-                    <i class="fas fa-database"></i>
-                </div>
+        // Table & Container Manager
+        function renderContainers() {
+            const body = document.getElementById('container-body');
+            const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            
+            let html = history.map((item, idx) => `
+                <tr>
+                    <td><div class="status-indicator"><span class="dot ${item.disease_name === 'Healthy' ? 'dot-green' : 'dot-red'}"></span> ${item.plant_name}</div></td>
+                    <td><i class="fas fa-heart" style="color:#ef4444; font-size:0.8rem;"></i> ${100 - (item.severity || 15)}%</td>
+                    <td><i class="fas fa-tint" style="color:var(--brand-emerald); font-size:0.8rem;"></i> 65%</td>
+                    <td>6.5</td>
+                    <td><i class="fas fa-leaf" style="color:var(--brand-emerald); font-size:0.8rem;"></i> 85%</td>
+                    <td>24°C</td>
+                    <td><button onclick="loadFromArchive(${idx})" style="background:var(--brand-emerald); color:#fff; border:none; padding:6px 15px; border-radius:8px; font-size:0.75rem;">Details</button></td>
+                </tr>
             `).join('');
+
+            // Keep default row if empty
+            if(history.length === 0) {
+                 html += `<tr><td>Ns-Alpha</td><td>90%</td><td>70%</td><td>6.8</td><td>90%</td><td>25°C</td><td>-</td></tr>`;
+            }
+            body.innerHTML = html;
         }
 
-        function loadFromHistory(index) {
-            const history = JSON.parse(localStorage.getItem('agro-archives') || '[]');
-            updateUI(history[index]);
+        function loadFromArchive(idx) {
+            const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            updateUI(history[idx]);
         }
-        renderHistory();
 
-        // Core Functions
-        function showLoader(show) { document.getElementById('analysis-loader').style.display = show ? 'flex' : 'none'; }
-
+        // Analysis Integration
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-            showLoader(true);
+            document.getElementById('analysis-loader').style.display = 'flex';
             try {
-                const compressedImage = await compressImage(file);
                 const formData = new FormData();
-                formData.append('img', compressedImage);
+                formData.append('img', file);
                 const response = await fetch('/upload/', {
                     method: 'POST',
                     body: formData,
@@ -283,124 +264,61 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    saveToHistory(data);
+                    saveToTwin(data);
                     updateUI(data);
-                } else throw new Error(data.error_message || 'Analysis failed');
-            } catch (error) {
-                console.error(error);
-                alert('Neural Scan Error: ' + error.message);
-            } finally { showLoader(false); }
+                }
+            } catch (e) { alert('Neural Scan Error: ' + e); }
+            finally { document.getElementById('analysis-loader').style.display = 'none'; }
         }
 
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX = 1200;
-                        let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
-                        else { if (h > MAX) { w *= MAX/h; h = MAX; } }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.85);
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('report-view');
-            const opt = {
-                margin: 0.5, filename: 'AgroAI_Digital_Log.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#020617', useCORS: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+        function saveToTwin(data) {
+            let history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            history.unshift(data);
+            if(history.length > 10) history.pop();
+            localStorage.setItem('agro-twin-containers', JSON.stringify(history));
+            renderContainers();
         }
 
         function updateUI(data) {
-            const content = document.getElementById('dashboard-content');
-            if (!data || data.is_valid === false) {
-                 content.innerHTML = `<div class="glass-card" style="padding:100px; text-align:center;">
-                    <i class="fas fa-exclamation-triangle" style="font-size:60px; color:var(--accent-neon); margin-bottom:30px;"></i>
-                    <h2 style="font-size:2rem; margin-bottom:20px;">Buffer Underflow: Object Unrecognized</h2>
-                    <p style="color:var(--text-secondary); margin-bottom:40px;">The specimen does not match any botanical patterns in our neural database.</p>
-                    <button class="glow-btn" onclick="window.location.reload()">RE-INITIALIZE ENGINE</button>
-                 </div>`;
-                 return;
-            }
-
+            const report = document.getElementById('report-view');
             const isDiseased = data.disease_name !== 'Healthy';
-            const confidence = data.confidence || 95;
-
-            content.innerHTML = `
-                <div id="report-view">
-                    <h2 class="neon-title" style="margin-bottom:60px;">Neural <span style="font-weight:300; opacity:0.4;">Archives</span></h2>
-                    <div class="result-layout">
-                        <div class="specimen-sidebar">
-                            <div class="specimen-frame glass-card">
-                                <img src="${data.imagepath}" alt="Specimen">
-                                <div class="status-badge" style="background:${isDiseased ? '#ff003c' : 'var(--accent-neon)'}">${isDiseased ? 'DISEASED' : 'HEALTHY'}</div>
-                            </div>
-                            <div class="glass-card" style="padding:30px; margin-top:30px;">
-                                <div class="metric-header" style="margin-bottom:20px;"><i class="fas fa-brain"></i> Confidence Matrix</div>
-                                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                                    <span style="font-size:3rem; font-weight:800; color:var(--accent-neon);">${confidence}%</span>
-                                    <span style="color:var(--text-secondary); margin-bottom:10px;">PEAK PROBABILITY</span>
-                                </div>
-                                <div style="width:100%; height:8px; background:rgba(255,255,255,0.05); border-radius:10px; margin-top:20px; overflow:hidden;">
-                                    <div style="width:${confidence}%; height:100%; background:var(--accent-neon); box-shadow:0 0 20px var(--accent-neon);"></div>
-                                </div>
-                            </div>
+            
+            report.innerHTML = `
+                <div style="background:#fff; border-radius:30px; padding:50px; box-shadow:var(--shadow-soft); margin-top:100px;">
+                    <button class="menu-item" onclick="switchView('dashboard')" style="background:var(--brand-grey); border:none; color:var(--text-muted); padding:10px 20px; border-radius:10px; margin-bottom:40px; cursor:pointer;">← Return to Overview</button>
+                    <div style="display:grid; grid-template-columns: 400px 1fr; gap:60px;">
+                        <div style="border-radius:24px; overflow:hidden; border:8px solid var(--brand-grey)">
+                            <img src="${data.imagepath}" style="width:100%; height:100%; object-fit:cover;">
                         </div>
-
-                        <div class="details-panel glass-card" style="padding:50px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:50px;">
-                                <div>
-                                    <span style="color:var(--accent-neon); font-weight:700; font-size:0.9rem; text-transform:uppercase; letter-spacing:3px;">Identification Verified</span>
-                                    <h2 style="font-size:3.5rem; font-weight:800; margin:10px 0;">${data.plant_name}</h2>
-                                    <h3 style="font-size:1.8rem; color:var(--text-secondary); font-weight:400;">Anomaly: <span style="color:#fff;">${data.disease_name}</span></h3>
-                                </div>
-                                <div style="text-align:right;">
-                                    <p style="color:var(--text-secondary); font-size:0.8rem; margin-bottom:10px;">ID KEY</p>
-                                    <p style="font-weight:700; letter-spacing:2px;">#AGRO-${data.current_time || '2026'}</p>
-                                </div>
+                        <div>
+                            <span style="color:var(--brand-emerald); font-weight:700; letter-spacing:2px; font-size:0.8rem;">NEURAL DIAGNOSIS COMPLETE</span>
+                            <h2 style="font-size:4rem; font-weight:800; margin:10px 0;">${data.plant_name}</h2>
+                            <h3 style="font-size:2rem; color:${isDiseased ? '#ef4444' : 'var(--brand-emerald)'}; font-weight:400; font-style:italic;">Status: ${data.disease_name}</h3>
+                            <div style="margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:40px;">
+                                <div><h4 style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; margin-bottom:15px;">Pathology Report</h4><p style="line-height:1.7;">${data.prediction.cause}</p></div>
+                                <div><h4 style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; margin-bottom:15px;">Remediation</h4><p style="line-height:1.7;">${data.prediction.cure}</p></div>
                             </div>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
-                                <div>
-                                    <h4 style="color:var(--accent-neon); margin-bottom:20px; text-transform:uppercase; font-size:0.85rem;"><i class="fas fa-microscope"></i> Pathology report</h4>
-                                    <p style="color:var(--text-secondary); line-height:1.8; font-size:1.1rem;">${data.prediction.cause}</p>
-                                </div>
-                                <div>
-                                    <h4 style="color:var(--accent-neon); margin-bottom:20px; text-transform:uppercase; font-size:0.85rem;"><i class="fas fa-shield-virus"></i> Bio-Hack Remediation</h4>
-                                    <p style="color:var(--text-secondary); line-height:1.8; font-size:1.1rem;">${data.prediction.cure}</p>
-                                </div>
+                            <div style="background:var(--brand-grey); padding:30px; border-radius:20px; margin-top:40px;">
+                                <p style="font-weight:700; color:var(--brand-emerald);">${data.tamil.plant} - ${data.tamil.disease}</p>
+                                <p style="margin-top:10px; font-size:0.95rem;">${data.tamil.cure}</p>
                             </div>
-                            <div style="background:rgba(0, 255, 156, 0.05); padding:30px; border-radius:20px; margin-top:50px; border:1px dashed var(--accent-glow);">
-                                <p style="font-weight:700; font-size:1.4rem; color:var(--accent-neon); margin-bottom:15px;">${data.tamil.plant} - ${data.tamil.disease}</p>
-                                <p style="line-height:1.8; color:var(--text-secondary);">
-                                    <strong>முக்கிய காரணம்:</strong> ${data.tamil.cause} <br>
-                                    <strong>தீர்வு முறை:</strong> ${data.tamil.cure}
-                                </p>
-                            </div>
-                            <div style="margin-top:50px; display:flex; gap:24px;">
-                                <button class="glow-btn" style="flex:1;" onclick="window.location.reload()"><i class="fas fa-undo"></i> RE-SYNC ENGINE</button>
-                                <button class="glow-btn" onclick="downloadPDF()" style="background:transparent; border:1px solid var(--accent-neon); color:var(--accent-neon); box-shadow:none;">
-                                    <i class="fas fa-file-code"></i> EXPORT LOGS
-                                </button>
+                            <div style="margin-top:40px; display:flex; gap:20px;">
+                                <button onclick="downloadPDF()" style="background:var(--brand-emerald); color:#fff; border:none; padding:15px 40px; border-radius:15px; font-weight:600; cursor:pointer;">Export Lab Report</button>
+                                <button onclick="switchView('dashboard')" style="background:var(--brand-grey); border:none; padding:15px 40px; border-radius:15px; font-weight:600; cursor:pointer;">Archive Result</button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            switchView('analysis');
         }
+
+        function downloadPDF() {
+            const element = document.getElementById('report-view');
+            html2pdf().from(element).save('AgroAI_DigitalTwin_Report.pdf');
+        }
+
+        renderContainers();
     </script>
 </body>
 </html>
