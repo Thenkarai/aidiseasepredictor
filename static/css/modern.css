@@ -37,9 +37,11 @@ body {
 /* Floating Top Banner */
 .header-hero {
     position: absolute;
-    top: -260px; left: 5%; width: 90%;
+    top: -260px; left: 50%; transform: translateX(-50%);
+    width: 90%; max-width: 1200px;
     height: 240px;
     display: flex; flex-direction: column; justify-content: flex-end;
+    align-items: center; text-align: center;
 }
 
 .overview-title {
@@ -49,16 +51,18 @@ body {
 
 .top-metrics {
     display: flex; gap: 60px; color: rgba(255,255,255,0.9);
+    justify-content: center; width: 100%;
 }
 
-.metric-item { display: flex; flex-direction: column; gap: 5px; }
+.metric-item { display: flex; flex-direction: column; gap: 5px; align-items: center; }
 .metric-item span:first-child { font-size: 0.9rem; opacity: 0.7; display: flex; align-items: center; gap: 8px; }
 .metric-item span:last-child { font-size: 2.2rem; font-weight: 600; font-family: 'Inter', sans-serif; }
 
 /* Plant Anatomy (Right Side Floating) */
 .plant-visual-hub {
     position: absolute;
-    top: -280px; right: 5%; width: 450px; height: 400px;
+    top: -280px; left: 50%; transform: translateX(150px); /* Positioned relative to center */
+    width: 450px; height: 400px;
     z-index: 20;
 }
 
@@ -89,7 +93,8 @@ body {
     display: grid;
     grid-template-columns: 1.2fr 1.1fr 1fr;
     gap: 24px;
-    margin-bottom: 40px;
+    margin: 0 auto 40px;
+    max-width: 1200px;
 }
 
 .card-v3 {
@@ -117,6 +122,8 @@ body {
     border-radius: var(--border-radius-lg);
     padding: 30px;
     box-shadow: var(--shadow-soft);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .c-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
