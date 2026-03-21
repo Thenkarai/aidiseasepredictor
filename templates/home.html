@@ -3,30 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AgroAI — Botanical Diagnostics & Digital Twin Dashboard.">
-    <title>AgroAI Dashboard</title>
+    <meta name="description" content="AgroAI — Premium Intelligent Crop Advisory System">
+    <title>AgroAI | Plant Intelligence</title>
+    <!-- Include html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
     <style>
+        /* Smooth Fade Overlays */
         #analysis-loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
+            background: rgba(250, 250, 247, 0.95); backdrop-filter: blur(10px);
+            z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
         }
-        .view-section { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+        .loading-ring {
+            width: 80px; height: 80px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-dark);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .view-section { display: none; width: 100%; animation: softFadeIn 0.5s ease-out; }
         .view-active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
+        @keyframes softFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Elegant Camera Modal */
         #camera-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 10001; display: none;
-            align-items: center; justify-content: center; flex-direction: column; gap: 30px;
+            background: rgba(28, 28, 28, 0.9); backdrop-filter: blur(10px); z-index: 10001; display: none;
+            align-items: center; justify-content: center; flex-direction: column; gap: 24px;
         }
-        #camera-video { width: 90%; max-width: 800px; border-radius: 20px; border: 4px solid #fff; }
+        #camera-video { width: 90%; max-width: 700px; border-radius: var(--radius-lg); box-shadow: var(--shadow-hover); }
     </style>
 </head>
 <body>
 
+    <!-- Minimal Navbar -->
     <nav class="top-navbar">
         <div class="nav-brand">
             <i class="fas fa-leaf"></i>
@@ -36,92 +50,115 @@
             <a href="javascript:void(0)" onclick="switchView('dashboard')" class="menu-item active" id="menu-dash">Dashboard</a>
             <a href="javascript:void(0)" onclick="switchView('analytics')" class="menu-item" id="menu-analytics">Analytics</a>
         </div>
-        <div class="nav-right">
-             <!-- Minimal Profile -->
-             <div style="width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#fff;">
-                <i class="fas fa-user"></i>
-             </div>
-        </div>
+        <div class="user-profile-icon"><i class="fas fa-user-alt" style="font-size: 0.9rem;"></i></div>
     </nav>
 
+    <!-- Scanner Overlays -->
     <div id="camera-modal">
         <video id="camera-video" autoplay playsinline></video>
-        <div style="display:flex; gap:20px;">
-            <button class="scanner-btn" onclick="capturePhoto()"><i class="fas fa-camera"></i> CAPTURE</button>
-            <button class="scanner-btn-alt" onclick="closeCamera()">CANCEL</button>
+        <div style="display:flex; gap:16px;">
+            <button class="btn-primary" onclick="capturePhoto()"><i class="fas fa-camera"></i> Capture</button>
+            <button class="btn-secondary" onclick="closeCamera()">Cancel</button>
         </div>
         <canvas id="camera-canvas" style="display:none;"></canvas>
     </div>
 
     <div id="analysis-loader">
-        <i class="fas fa-spinner fa-spin" style="font-size:48px; color:var(--accent);"></i>
-        <p style="font-weight:700;">Processing Specimen...</p>
+        <div class="loading-ring"></div>
+        <p style="font-weight:500; font-size:1.1rem; color:var(--primary-dark);">Analyzing specimen...</p>
     </div>
 
+    <!-- Main Application -->
     <div class="main-wrapper">
         <div id="view-dashboard" class="view-section view-active">
-            <div class="header-hero">
-                <h1 class="overview-title">Digital Twin</h1>
-                <div class="top-metrics">
-                    <div class="metric-item">
-                        <span><i class="fas fa-droplet"></i> Hydration</span>
-                        <span>82%</span>
-                    </div>
-                    <div class="metric-item">
-                        <span><i class="fas fa-flask"></i> Soil pH</span>
-                        <span>6.8</span>
-                    </div>
-                    <div class="metric-item">
-                        <span><i class="fas fa-temperature-half"></i> Core Temp</span>
-                        <span>24°C</span>
-                    </div>
-                </div>
+            
+            <!-- SaaS Greeting Hero -->
+            <div class="hero-header">
+                <h1 class="greeting-title">Good Morning, Farmer <span style="color:var(--secondary);">🌿</span></h1>
+                <p class="greeting-subtitle">Here is your daily crop intelligence report. System sensors indicate optimal hydration levels across the main quadrant.</p>
+            </div>
 
-                <div class="plant-visual-hub">
-                    <img src="https://github.com/Thenkarai/aidiseasepredictor/raw/main/static/images/botanical_anatomy.png" class="plant-anatomy-img" alt="Plant Twin">
+            <!-- Top Metrics Cards -->
+            <div class="metrics-row">
+                <div class="metric-card">
+                    <div class="metric-header"><span>Hydration Level</span> <i class="fas fa-droplet"></i></div>
+                    <div class="metric-value">82%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header"><span>Soil pH</span> <i class="fas fa-flask"></i></div>
+                    <div class="metric-value">6.8</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header"><span>Core Temp</span> <i class="fas fa-temperature-half"></i></div>
+                    <div class="metric-value">24°C</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header"><span>Air Quality</span> <i class="fas fa-wind"></i></div>
+                    <div class="metric-value">98 <span style="font-size:0.9rem; color:var(--text-muted); font-weight:400;">AQI</span></div>
                 </div>
             </div>
 
+            <!-- Main Interactive Grid -->
             <div class="dashboard-grid">
-                <div class="card-v3" style="grid-column: span 2; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h2 style="font-size:1.8rem; font-weight:700;">Diagnostic Hub</h2>
-                        <p style="color:var(--text-secondary);">Initialize camera or upload specimen.</p>
-                    </div>
-                    <div style="display:flex; gap:15px;">
-                        <button class="scanner-btn" onclick="openCamera()"><i class="fas fa-video"></i> CAMERA</button>
-                        <button class="scanner-btn-alt" onclick="document.getElementById('file-input').click()"><i class="fas fa-upload"></i> FILE</button>
+                
+                <!-- Scanner Hub (Centered & Spacious) -->
+                <div class="glass-card scanner-hub">
+                    <div class="scanner-illustration"><i class="fas fa-microscope"></i></div>
+                    <h2 class="card-title">Disease Diagnostics</h2>
+                    <p class="card-desc">Upload a high-resolution image of the affected leaf, or use your device camera to run a real-time neural analysis.</p>
+                    
+                    <div style="display:flex; gap:16px;">
+                        <button class="btn-primary" onclick="openCamera()"><i class="fas fa-video"></i> Open Camera</button>
+                        <button class="btn-secondary" onclick="document.getElementById('file-input').click()"><i class="fas fa-cloud-upload-alt"></i> Upload Photo</button>
                     </div>
                 </div>
 
-                <div class="card-v3">
-                    <div class="card-title">AI System</div>
-                    <div style="padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; color:var(--accent); font-weight:700; display:flex; align-items:center; gap:10px;">
-                        <span style="width:10px; height:10px; border-radius:50%; background:var(--accent);"></span>
-                        SYSTEM ACTIVE
+                <!-- Advisory / Trends Feed -->
+                <div class="glass-card">
+                    <h2 class="card-title">Daily Advisory</h2>
+                    <p class="card-desc" style="margin-bottom:15px;">AI-generated farming insights.</p>
+                    <div class="advisory-list">
+                        <div class="advisory-item">
+                            <div class="advisory-icon"><i class="fas fa-sun"></i></div>
+                            <div class="advisory-text">
+                                <h4>Optimal UV Exposure</h4>
+                                <p>Current sunlight aligns perfectly with the growth cycle.</p>
+                            </div>
+                        </div>
+                        <div class="advisory-item">
+                            <div class="advisory-icon"><i class="fas fa-shield-virus"></i></div>
+                            <div class="advisory-text">
+                                <h4>Blight Risk Low</h4>
+                                <p>Humidity levels remain below the danger threshold.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <section class="containers-section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                    <h2 style="font-size:1.5rem; font-weight:700;">Active Containers</h2>
+            <!-- History Table -->
+            <div class="data-table-wrapper">
+                <div class="data-header">
+                    <h2 class="card-title" style="margin:0;">Recent Scans</h2>
                 </div>
                 <table class="c-table">
                     <thead>
                         <tr>
-                            <th>Unit UUID</th>
-                            <th>Health status</th>
-                            <th>Time</th>
-                            <th>Status</th>
+                            <th>Unit ID</th>
+                            <th>Health Status</th>
+                            <th>Timestamp</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="container-body"></tbody>
+                    <tbody id="container-body">
+                        <!-- Populated by JS -->
+                    </tbody>
                 </table>
-            </section>
+            </div>
+
         </div>
 
+        <!-- Analysis Results View -->
         <div id="view-analysis" class="view-section">
              <div id="report-view"></div>
         </div>
@@ -129,74 +166,129 @@
         <input type="file" id="file-input" onchange="handleFileSelect(event)" hidden>
     </div>
 
+    <!-- Application Logic -->
     <script>
+        // Camera Handling
         let stream = null;
         async function openCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 document.getElementById('camera-video').srcObject = stream;
                 document.getElementById('camera-modal').style.display = 'flex';
-            } catch (err) { alert(err.message); }
+            } catch (err) { alert("Camera access denied: " + err.message); }
         }
-        function closeCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); document.getElementById('camera-modal').style.display='none'; }
+
+        function closeCamera() {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            document.getElementById('camera-modal').style.display = 'none';
+        }
+
         async function capturePhoto() {
             const v = document.getElementById('camera-video');
             const c = document.getElementById('camera-canvas');
             c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v,0,0);
-            c.toBlob(b => handleDiagnosis(new File([b], "cap.jpg", {type:"image/jpeg"})), 'image/jpeg', 0.9);
+            c.getContext('2d').drawImage(v, 0, 0);
+            c.toBlob(blob => handleDiagnosis(new File([blob], "capture.jpg", {type: "image/jpeg"})), 'image/jpeg', 0.9);
             closeCamera();
         }
-        async function handleDiagnosis(f) {
+
+        // Diagnostic Engine
+        async function handleDiagnosis(file) {
             document.getElementById('analysis-loader').style.display = 'flex';
-            const fd = new FormData(); fd.append('img', f);
+            const formData = new FormData(); formData.append('img', file);
             try {
-                const r = await fetch('/upload/', { method: 'POST', body: fd, headers: {'X-Requested-With':'XMLHttpRequest'}});
-                const d = await r.json();
-                if (d.success) { saveToTwin(d); updateUI(d); }
-            } catch (e) { alert(e); }
-            finally { document.getElementById('analysis-loader').style.display='none'; }
+                const response = await fetch('/upload/', { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                const data = await response.json();
+                if (data.success) { saveToTwin(data); updateUI(data); }
+            } catch (e) { alert("Analysis failed: " + e); }
+            finally { document.getElementById('analysis-loader').style.display = 'none'; }
         }
-        function handleFileSelect(e) { if(e.target.files[0]) handleDiagnosis(e.target.files[0]); }
-        function switchView(v) {
+
+        function handleFileSelect(event) { if(event.target.files[0]) handleDiagnosis(event.target.files[0]); }
+
+        // Navigation
+        function switchView(viewName) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            if(v === 'dashboard') { document.getElementById('view-dashboard').classList.add('view-active'); document.getElementById('menu-dash').classList.add('active'); }
-            else if(v === 'analysis') { document.getElementById('view-analysis').classList.add('view-active'); }
-            window.scrollTo({top:0, behavior:'smooth'});
+            
+            if(viewName === 'dashboard') {
+                document.getElementById('view-dashboard').classList.add('view-active');
+                document.getElementById('menu-dash').classList.add('active');
+            } else if(viewName === 'analytics') {
+                document.getElementById('view-analysis').classList.add('view-active');
+            }
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
+
+        // Data Storage & Rendering
         function renderContainers() {
-            const h = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
-            document.getElementById('container-body').innerHTML = h.map((item, idx) => `
+            const history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            const tbody = document.getElementById('container-body');
+            
+            if(history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">No recent scans found. Create a new diagnostic to begin.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = history.map((item, idx) => {
+                const isHealthy = item.disease_name === 'Healthy';
+                const badgeClass = isHealthy ? 'badge-success' : 'badge-danger';
+                return `
                 <tr>
-                    <td>#${1000+idx}</td>
-                    <td style="color:${item.disease_name==='Healthy'?'var(--accent)':'#ef4444'}; font-weight:700;">${item.disease_name}</td>
-                    <td style="opacity:0.6;">${item.current_time||'Now'}</td>
-                    <td>ACTIVE</td>
-                    <td><button onclick="loadFromArchive(${idx})" style="background:var(--accent); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">VIEW</button></td>
+                    <td style="font-weight:600; color:var(--primary-dark);">UID-${1000 + idx}</td>
+                    <td><span class="badge ${badgeClass}">${item.disease_name}</span></td>
+                    <td style="color:var(--text-muted);">${item.current_time || 'Just now'}</td>
+                    <td><button onclick="loadFromArchive(${idx})" style="background:transparent; border:none; color:var(--secondary); font-weight:600; cursor:pointer; font-family:'Inter', sans-serif;">View Report</button></td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
-        function saveToTwin(d) { let h = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]'); h.unshift(d); localStorage.setItem('agro-twin-containers', JSON.stringify(h.slice(0,20))); renderContainers(); }
-        function updateUI(d) {
+
+        function saveToTwin(data) {
+            let history = JSON.parse(localStorage.getItem('agro-twin-containers') || '[]');
+            history.unshift(data);
+            localStorage.setItem('agro-twin-containers', JSON.stringify(history.slice(0, 15))); // Keep last 15
+            renderContainers();
+        }
+
+        // Result View UI (Apple/Stripe Style Report)
+        function updateUI(data) {
+            const isHealthy = data.disease_name === 'Healthy';
+            const statusColor = isHealthy ? '#10b981' : '#ef4444';
+            
             document.getElementById('report-view').innerHTML = `
-                <div style="background:#fff; border-radius:24px; padding:40px; box-shadow:var(--card-shadow); margin-top:40px;">
-                    <button onclick="switchView('dashboard')" style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:700;">← BACK</button>
-                    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:60px; margin-top:30px;">
-                        <img src="${d.imagepath}" style="width:100%; border-radius:20px;">
+                <div class="glass-card" style="max-width:1000px; margin: 40px auto 0;">
+                    <button onclick="switchView('dashboard')" class="btn-secondary" style="margin-bottom:32px; padding:10px 24px;"><i class="fas fa-arrow-left"></i> Back</button>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px; align-items:flex-start;">
                         <div>
-                            <h2 style="font-size:2.5rem;">${d.plant_name}</h2>
-                            <h3 style="color:${d.disease_name==='Healthy'?'var(--accent)':'#ef4444'};">${d.disease_name}</h3>
-                            <div style="margin-top:30px;">
-                                <h4 style="color:var(--accent);">Cause</h4><p>${d.prediction.cause}</p>
-                                <h4 style="color:var(--accent); margin-top:20px;">Cure</h4><p>${d.prediction.cure}</p>
+                            <img src="${data.imagepath}" style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-soft); border:1px solid var(--border-color);">
+                        </div>
+                        <div>
+                            <span style="color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Diagnostic Report</span>
+                            <h2 style="font-size:2.8rem; margin:8px 0; letter-spacing:-1px;">${data.plant_name}</h2>
+                            <h3 style="font-size:1.5rem; color:${statusColor}; font-weight:500; margin-bottom: 30px;">Status: ${data.disease_name}</h3>
+                            
+                            <div style="display:flex; flex-direction:column; gap:24px;">
+                                <div>
+                                    <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;">Botanical Condition</h4>
+                                    <p style="font-size:1.05rem; line-height:1.6;">${data.prediction.cause}</p>
+                                </div>
+                                <div>
+                                    <h4 style="font-size:0.95rem; color:var(--text-muted); margin-bottom:8px;">Suggested Agricultural Treatment</h4>
+                                    <p style="font-size:1.05rem; line-height:1.6;">${data.prediction.cure}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>`;
-            switchView('analysis');
+            switchView('analytics');
         }
-        function loadFromArchive(i) { updateUI(JSON.parse(localStorage.getItem('agro-twin-containers'))[i]); }
+
+        function loadFromArchive(idx) {
+            updateUI(JSON.parse(localStorage.getItem('agro-twin-containers'))[idx]);
+        }
+
+        // Init
         renderContainers();
     </script>
 </body>
