@@ -18,13 +18,27 @@ app = Flask(__name__)
 print(f"Server starting - Python {os.sys.version}")
 print(f"Environment GEMINI_API_KEY: {'Set' if os.getenv('GEMINI_API_KEY') else 'NOT SET'}")
 
+# Advanced Model Strategy
+AVAILABLE_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-exp', 'gemini-1.5-pro']
+
+def get_available_models():
+    """Diagnostic helper to log all models accessible by the current key."""
+    try:
+        models = [m.name for m in genai.list_models()]
+        print(f"DIAGNOSTIC - Accessible Models: {models}")
+        return models
+    except Exception as e:
+        print(f"DIAGNOSTIC - Failed to list models: {e}")
+        return []
+
 # Configure Gemini Client
 api_key = os.getenv("GEMINI_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)
+    get_available_models()
 
 def model_predict(image_bytes):
-    """Run prediction using google-generativeai SDK."""
+    """Run prediction with automated model cycling for 100% up-time."""
     try:
         img = Image.open(io.BytesIO(image_bytes))
     except Exception as e:
@@ -75,31 +89,40 @@ Respond ONLY in this JSON format:
   }
 }
 """
-    try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content([prompt, img])
-        
-        # Extract JSON from response
-        res_text = response.text
-        if "```json" in res_text:
-            res_text = res_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in res_text:
-            res_text = res_text.split("```")[1].split("```")[0].strip()
+    
+    last_error = None
+    for model_name in AVAILABLE_MODELS:
+        try:
+            print(f"ENGINE - Attempting analysis with: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content([prompt, img])
             
-        data = json.loads(res_text)
-    except Exception as e:
-        import traceback
-        print(f"Prediction Error:\n{traceback.format_exc()}")
+            # Extract JSON from response
+            res_text = response.text
+            if "```json" in res_text:
+                res_text = res_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in res_text:
+                res_text = res_text.split("```")[1].split("```")[0].strip()
+                
+            data = json.loads(res_text)
+            print(f"ENGINE - Success with {model_name}")
+            break # Exit loop on success
+        except Exception as e:
+            last_error = str(e)
+            print(f"ENGINE - Model {model_name} failed: {last_error}")
+            continue # Try next model
+    else:
+        # If the loop finishes without break, all models failed
         return {
-            'prediction': {'cause': 'Engine Error', 'cure': 'Retrying...'},
+            'prediction': {'cause': 'All models returned errors', 'cure': 'Verify API Permissions'},
             'confidence': 0,
-            'plant_name': 'Error',
-            'disease_name': 'Inconclusive',
+            'plant_name': 'Engine Error',
+            'disease_name': f'Connectivity Issue ({last_error})',
             'is_healthy': False,
             'severity': 0.0,
             'tamil': {'plant': 'பிழை', 'disease': 'பிழை', 'cause': '-', 'cure': '-'},
             'is_valid': False,
-            'error_message': f'API Error: {str(e)}',
+            'error_message': f'Diagnostic Failure: {last_error}',
         }
     except Exception as e:
         import traceback
